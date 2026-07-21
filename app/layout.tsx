@@ -1,8 +1,21 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { Italianno, Oswald } from "next/font/google";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import "./globals.css";
+
+const wordmarkScript = Italianno({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-wordmark-script",
+});
+
+const wordmarkCondensed = Oswald({
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  variable: "--font-wordmark-condensed",
+});
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
@@ -36,7 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>
+      <body className={`${wordmarkScript.variable} ${wordmarkCondensed.variable}`}>
         <a className="skip-link" href="#main-content">Skip to content</a>
         <Header />
         <main id="main-content">{children}</main>
