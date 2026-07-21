@@ -45,10 +45,8 @@ button, input, textarea, select { font: inherit; }
 .site-header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid rgba(255,255,255,.1); background: rgba(13,15,16,.95); color: var(--cream); backdrop-filter: blur(14px); }
 .header-inner { width: min(1435px, calc(100% - 3rem)); height: 72px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
 .parent-brand { display: flex; align-items: center; gap: .7rem; white-space: nowrap; }
-.gf-mark { position: relative; display: grid; width: 39px; height: 39px; place-items: center; border: 5px solid #1688cf; border-right-color: var(--gold); border-radius: 50%; color: white; font-size: 1.25rem; font-weight: 800; line-height: 1; }
-.gf-mark::after { content: ""; position: absolute; width: 7px; height: 7px; top: -5px; right: 4px; border-radius: 50%; background: var(--gold); box-shadow: -13px 2px 0 #1688cf; }
-.gf-mark span { transform: translateY(-1px); }
-.parent-name { font-size: 1.15rem; font-weight: 430; letter-spacing: -.02em; }
+.global-logo { display: flex; width: 176px; height: 50px; align-items: center; justify-content: center; overflow: hidden; border-radius: 3px; background: white; padding: 3px 8px; }
+.global-logo img { width: 100%; height: 100%; object-fit: contain; }
 .brand-divider { width: 1px; height: 24px; margin: 0 .2rem; background: rgba(255,255,255,.25); }
 .site-domain { color: #d3a878; font-size: .83rem; font-weight: 700; letter-spacing: .01em; }
 .desktop-nav { display: flex; align-items: center; gap: 1.25rem; }
