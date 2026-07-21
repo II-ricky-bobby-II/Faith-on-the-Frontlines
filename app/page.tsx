@@ -21,7 +21,7 @@ export default function HomePage() {
               inspired to pray, give, and go.
             </p>
             <Link className="button button-teal" href="/events">
-              Register to attend <span aria-hidden="true">→</span>
+              Register to attend
             </Link>
           </div>
           <div className="event-grid event-grid-home">
@@ -31,7 +31,7 @@ export default function HomePage() {
           </div>
         </div>
         <Link className="all-events-link" href="/events">
-          View all upcoming events <span aria-hidden="true">→</span>
+          View all upcoming events <span aria-hidden="true">-&gt;</span>
         </Link>
       </section>
       <HostEventSection />

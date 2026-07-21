@@ -8,7 +8,7 @@ export function Header() {
     <header className="site-header">
       <div className="header-inner">
         <Link className="parent-brand" href="/" aria-label="Faith on the Frontlines home">
-          <span className="gf-mark" aria-hidden="true">GF</span>
+          <span className="gf-mark" aria-hidden="true"><span>G</span></span>
           <span className="parent-name">Global Fellowship</span>
           <span className="brand-divider" aria-hidden="true" />
           <span className="site-domain">faithonthefrontlines.com</span>

@@ -17,9 +17,9 @@ export function EventCard({ event }: { event: Event }) {
         <div className="event-card-body">
           <h3>{event.venue}</h3>
           <p className="event-location">{event.city}, {event.state}</p>
-          <div className="event-meta"><span>{formatter.format(date)} · {event.time}</span><span>With {event.speaker}</span></div>
+          <div className="event-meta"><span><b aria-hidden="true">□</b> {formatter.format(date)} &middot; {event.time}</span><span><b aria-hidden="true">○</b> <strong>Speaker:</strong> {event.speaker}</span></div>
           <p className="event-theme">{event.theme}</p>
-          <span className="text-link">Event details <span aria-hidden="true">→</span></span>
+          <span className="text-link">Event details <span aria-hidden="true">-&gt;</span></span>
         </div>
       </Link>
     </article>
