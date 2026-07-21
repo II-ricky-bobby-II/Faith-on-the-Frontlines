@@ -3,22 +3,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EventCard } from "@/components/EventCard";
-import { events, getEvent } from "@/data/events";
+import { sampleEvents } from "@/data/events";
+import { getEventBySlug, getEvents } from "@/lib/payload";
 
-export function generateStaticParams() { return events.map((event) => ({ slug: event.slug })); }
+export function generateStaticParams() { return sampleEvents.map((event) => ({ slug: event.slug })); }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const event = getEvent((await params).slug);
+  const event = await getEventBySlug((await params).slug);
   return event ? { title: event.title, description: event.description } : {};
 }
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
-  const event = getEvent((await params).slug);
+  const event = await getEventBySlug((await params).slug);
   if (!event) notFound();
   const date = new Date(`${event.date}T12:00:00Z`);
   const dateLabel = new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" }).format(date);
   const jsonLd = { "@context": "https://schema.org", "@type": "Event", name: event.title, description: event.description, startDate: event.date, eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode", eventStatus: "https://schema.org/EventScheduled", location: { "@type": "Place", name: event.venue, address: { "@type": "PostalAddress", streetAddress: event.address.split(",")[0], addressLocality: event.city, addressRegion: event.state, addressCountry: "US" } }, image: [event.image], organizer: { "@type": "Organization", name: "Faith on the Frontlines", url: "https://faithonthefrontlines.com" } };
-  const related = events.filter((item) => item.slug !== event.slug).slice(0, 2);
+  const related = (await getEvents()).filter((item) => item.slug !== event.slug).slice(0, 2);
   const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${event.date.replaceAll("-", "")}/${event.date.replaceAll("-", "")}&location=${encodeURIComponent(event.address)}&details=${encodeURIComponent(event.description)}`;
   return (
     <>

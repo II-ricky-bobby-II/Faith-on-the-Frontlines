@@ -1,6 +1,6 @@
 import type { Event } from "@/types/event";
 
-export const events: Event[] = [
+export const sampleEvents: Event[] = [
   {
     slug: "stories-from-east-africa",
     title: "Stories from East Africa",
@@ -55,5 +55,5 @@ export const events: Event[] = [
 ];
 
 export function getEvent(slug: string) {
-  return events.find((event) => event.slug === slug);
+  return sampleEvents.find((event) => event.slug === slug);
 }

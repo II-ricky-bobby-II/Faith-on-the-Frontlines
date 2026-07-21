@@ -2,9 +2,10 @@ import Link from "next/link";
 import { EventCard } from "@/components/EventCard";
 import { Hero } from "@/components/Hero";
 import { HostEventSection } from "@/components/HostEventSection";
-import { events } from "@/data/events";
+import { getEvents } from "@/lib/payload";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const events = await getEvents({ limit: 3 });
   return (
     <>
       <Hero />

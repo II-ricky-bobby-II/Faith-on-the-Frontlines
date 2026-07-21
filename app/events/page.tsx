@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { EventCard } from "@/components/EventCard";
-import { events } from "@/data/events";
+import { getEvents } from "@/lib/payload";
 
 export const metadata: Metadata = { title: "Upcoming Events", description: "Find a Faith on the Frontlines gathering near you." };
 
-export default function EventsPage() {
+export default async function EventsPage() {
+  const events = await getEvents();
   return (
     <>
       <header className="page-hero"><div className="section-shell"><p className="eyebrow">Gather. Listen. Respond.</p><h1 className="display-heading">Upcoming Events</h1><p>Meet frontline workers, hear honest stories of God at work, and discover practical ways to stand with least-reached communities.</p></div></header>
