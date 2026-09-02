@@ -2,6 +2,7 @@ import Link from "next/link";
 import { EventCard } from "@/components/EventCard";
 import { Hero } from "@/components/Hero";
 import { HostEventSection } from "@/components/HostEventSection";
+import { EventInvitationSignup } from "@/components/EventInvitationSignup";
 import { getEvents } from "@/lib/payload";
 
 export default async function HomePage() {
@@ -34,6 +35,9 @@ export default async function HomePage() {
         <Link className="all-events-link" href="/events">
           View all upcoming events <span aria-hidden="true">-&gt;</span>
         </Link>
+        <div className="section-shell">
+          <EventInvitationSignup source="home" />
+        </div>
       </section>
       <HostEventSection />
     </>
