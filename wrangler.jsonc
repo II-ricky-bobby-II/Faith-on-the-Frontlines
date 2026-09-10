@@ -14,13 +14,6 @@
   "images": {
     "binding": "IMAGES"
   },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "site-creator-d1-faith-frontlines",
-      "database_id": "864cde68-9659-4ceb-85ff-6aec2a857253"
-    }
-  ],
   "routes": [
     { "pattern": "faithonthefrontlines.org", "custom_domain": true },
     { "pattern": "www.faithonthefrontlines.org", "custom_domain": true }

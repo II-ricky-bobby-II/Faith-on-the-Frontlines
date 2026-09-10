@@ -3,8 +3,9 @@ import { defineConfig } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { sites } from "./build/sites-vite-plugin";
 
-const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
-  "00000000-0000-4000-8000-000000000000";
+// Production D1 database, provisioned on the Cloudflare account this app is
+// deployed to (`wrangler d1 create site-creator-d1-faith-frontlines`).
+const PRODUCTION_DATABASE_ID = "864cde68-9659-4ceb-85ff-6aec2a857253";
 
 const { d1, r2 } = hostingConfig;
 
@@ -18,8 +19,8 @@ const localBindingConfig = {
     ? [
         {
           binding: d1,
-          database_name: "site-creator-d1",
-          database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
+          database_name: "site-creator-d1-faith-frontlines",
+          database_id: PRODUCTION_DATABASE_ID,
         },
       ]
     : [],
