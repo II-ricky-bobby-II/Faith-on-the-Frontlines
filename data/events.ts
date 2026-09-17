@@ -15,7 +15,7 @@ export const sampleEvents: Event[] = [
     image: "https://images.unsplash.com/photo-1542810634-71277d95dcbb?auto=format&fit=crop&w=1200&q=82",
     imageAlt: "Children gathering together outdoors in East Africa",
     description: "Spend an evening with Daniel as he shares what God is doing through local believers in places where the church is still young. Hear honest stories of costly faith, patient friendship, and communities encountering the hope of Jesus.",
-    contactEmail: "events@faithonthefrontlines.com",
+    contactEmail: "events@faithonthefrontlines.org",
     registrationUrl: "#register",
   },
   {
@@ -32,7 +32,7 @@ export const sampleEvents: Event[] = [
     image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=82",
     imageAlt: "Friends gathered in conversation outdoors",
     description: "Meet Sarah and hear how hospitality, language learning, and long-term friendship are opening doors for the good news in Central Asia. This gathering includes guided prayer and practical ways your church can stand with frontline workers.",
-    contactEmail: "events@faithonthefrontlines.com",
+    contactEmail: "events@faithonthefrontlines.org",
     registrationUrl: "#register",
   },
   {
@@ -49,7 +49,7 @@ export const sampleEvents: Event[] = [
     image: "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&w=1200&q=82",
     imageAlt: "People sharing a warm conversation in a community setting",
     description: "Michael and Ana invite you into the everyday realities of serving along the Silk Road. Their stories reveal how prayer, ordinary meals, and courageous local believers are shaping a growing community of faith.",
-    contactEmail: "events@faithonthefrontlines.com",
+    contactEmail: "events@faithonthefrontlines.org",
     registrationUrl: "#register",
   },
 ];
@@ -57,3 +57,4 @@ export const sampleEvents: Event[] = [
 export function getEvent(slug: string) {
   return sampleEvents.find((event) => event.slug === slug);
 }
+

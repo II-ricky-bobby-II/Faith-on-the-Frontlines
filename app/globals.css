@@ -45,7 +45,7 @@ button, input, textarea, select { font: inherit; }
 .site-header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid rgba(255,255,255,.1); background: rgba(13,15,16,.95); color: var(--cream); backdrop-filter: blur(14px); }
 .header-inner { width: min(1435px, calc(100% - 3rem)); height: 72px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
 .parent-brand { display: flex; align-items: center; gap: .7rem; white-space: nowrap; }
-.global-logo { display: flex; width: 176px; height: 50px; align-items: center; justify-content: center; overflow: hidden; border-radius: 3px; background: white; padding: 3px 8px; }
+.global-logo { display: flex; width: 176px; height: 50px; align-items: center; justify-content: center; overflow: hidden; border-radius: 3px; background: transparent; padding: 0; }
 .global-logo img { width: 100%; height: 100%; object-fit: contain; }
 .brand-divider { width: 1px; height: 24px; margin: 0 .2rem; background: rgba(255,255,255,.25); }
 .site-domain { color: #d3a878; font-size: .83rem; font-weight: 700; letter-spacing: .01em; }
@@ -60,6 +60,8 @@ button, input, textarea, select { font: inherit; }
 .hero-copy { position: relative; z-index: 8; display: flex; width: 43%; height: 100%; align-items: center; padding: 2.2rem 2.5rem 2.2rem max(4rem, calc((100vw - 1360px) / 2)); background: linear-gradient(90deg, rgba(10,11,11,.98) 0%, rgba(15,16,16,.96) 72%, rgba(15,16,16,.72) 90%, transparent 100%); }
 .hero-copy::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .35; background-image: radial-gradient(rgba(255,255,255,.11) .65px, transparent .75px); background-size: 4px 4px; }
 .hero-content { width: min(520px, 100%); }
+.hero-title { margin: 0; }
+.hero-wordmark { display: block; width: min(100%, 420px); height: auto; }
 .hero-script { position: relative; z-index: 2; display: block; margin: 0 0 -2.15rem -.08em; color: var(--cream); font-family: var(--font-wordmark-script), "Snell Roundhand", cursive; font-size: clamp(4.8rem, 7vw, 7.1rem); font-weight: 400; letter-spacing: -.025em; line-height: .78; white-space: nowrap; transform: rotate(-2deg); }
 .hero-title strong { display: block; font-family: var(--font-wordmark-condensed), "Arial Narrow", sans-serif; font-size: clamp(5.1rem, 7.8vw, 7.5rem); font-weight: 500; letter-spacing: -.04em; line-height: .86; text-transform: uppercase; }
 .ministry-label { display: flex; align-items: center; gap: .8rem; margin: 1.25rem 0 1rem; color: #dfc69e; font-size: .9rem; font-weight: 500; letter-spacing: .04em; text-align: center; }
@@ -70,7 +72,7 @@ button, input, textarea, select { font: inherit; }
 .photo-panel img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.8) contrast(1.03); transition: transform 1s ease, filter 1s ease; }
 .hero:hover .photo-panel img { transform: scale(1.02); filter: saturate(.92) contrast(1.02); }
 .photo-main { z-index: 1; top: -5%; bottom: -5%; left: 37%; width: 39%; transform: rotate(-1.5deg); }
-.photo-main img { transform: scale(1.04); }
+.photo-main img { transform: scale(1.04); object-position: 42% center; }
 .hero:hover .photo-main img { transform: scale(1.06); }
 .photo-top { z-index: 2; top: -4%; right: -2%; width: 30%; height: 51%; transform: rotate(1.8deg); }
 .photo-bottom { z-index: 3; right: -2%; bottom: -6%; width: 36%; height: 58%; transform: rotate(2.5deg); }
@@ -104,6 +106,11 @@ button, input, textarea, select { font: inherit; }
 .event-card .text-link { display: none; }
 .text-link { color: var(--deep-teal); font-size: .75rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
 .all-events-link { display: table; margin: .65rem auto 0; color: var(--deep-teal); font-size: .76rem; font-weight: 700; }
+.events-empty-layout { align-items: center; }
+.events-coming-soon { min-height: 220px; border-left: 5px solid var(--gold); background: var(--warm-white); padding: clamp(1.5rem, 4vw, 3rem); box-shadow: 0 10px 28px rgba(29,38,41,.09); }
+.events-coming-soon h3 { margin: 0; color: var(--deep-teal); font-family: Georgia, serif; font-size: clamp(1.7rem, 3vw, 2.7rem); line-height: 1.08; }
+.events-coming-soon p:not(.eyebrow) { max-width: 34rem; color: #465257; font-size: .95rem; line-height: 1.55; }
+.events-coming-soon .text-link { display: inline-block; margin-top: .6rem; }
 
 /* Event invitation list */
 .event-invite { position: relative; display: grid; grid-template-columns: minmax(260px, .8fr) minmax(520px, 1.55fr); gap: clamp(2rem, 5vw, 5rem); align-items: center; overflow: hidden; border-left: 5px solid var(--gold); background: var(--deep-teal); padding: clamp(1.6rem, 3vw, 2.5rem); color: white; box-shadow: 0 14px 34px rgba(13, 15, 16, .13); }
@@ -155,6 +162,10 @@ button, input, textarea, select { font: inherit; }
 .page-section.alt { background: var(--pale-blue); }
 .page-section.white { background: var(--warm-white); }
 .event-grid-all { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.events-archive-empty { max-width: 760px; padding: 1rem 0 2rem; }
+.events-archive-empty h2 { margin: 0; color: var(--deep-teal); font-family: Georgia, serif; font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.1; }
+.events-archive-empty > p:not(.script-label) { max-width: 610px; margin: 1rem 0 1.5rem; color: #465257; font-size: 1.05rem; }
+.events-archive-actions { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: center; }
 .filters { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 2.5rem; }
 .filter-pill { border: 1px solid var(--line); border-radius: 99px; background: transparent; padding: .55rem 1rem; color: var(--muted-text); font-size: .78rem; }
 .filter-pill.active { border-color: var(--teal); background: var(--teal); color: white; }
@@ -238,6 +249,7 @@ button, input, textarea, select { font: inherit; }
   .mobile-menu { top: 66px; }
   .hero { height: 690px; }
   .hero-copy { position: absolute; top: 0; width: 100%; height: 57%; min-height: 0; padding: 2.5rem 1.5rem; background: linear-gradient(180deg, rgba(10,11,11,.98) 0%, rgba(10,11,11,.94) 82%, rgba(10,11,11,.5) 100%); }
+  .hero-wordmark { width: min(100%, 370px); }
   .hero-script { margin-bottom: -1.6rem; font-size: clamp(4.8rem, 20vw, 6.4rem); }
   .hero-title strong { font-size: clamp(4.7rem, 21vw, 6.6rem); }
   .hero-photos { top: 39%; height: 61%; }
@@ -270,3 +282,4 @@ button, input, textarea, select { font: inherit; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
