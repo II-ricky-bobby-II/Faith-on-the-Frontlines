@@ -10,10 +10,10 @@ export function Header() {
       <div className="header-inner">
         <Link className="parent-brand" href="/" aria-label="Faith on the Frontlines home">
           <span className="global-logo">
-            <Image src="/logos/global-fellowship.png" alt="Global Fellowship" width={224} height={76} priority />
+            <Image src="/logos/global-fellowship.png" alt="Global Fellowship" width={1795} height={792} priority />
           </span>
           <span className="brand-divider" aria-hidden="true" />
-          <span className="site-domain">faithonthefrontlines.com</span>
+          <span className="site-domain">faithonthefrontlines.org</span>
         </Link>
         <nav className="desktop-nav" aria-label="Primary navigation">
           {links.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
@@ -24,3 +24,4 @@ export function Header() {
     </header>
   );
 }
+

@@ -90,7 +90,7 @@ export async function getEvents(options: { limit?: number } = {}): Promise<Event
     "where[date][greater_than_equal]": new Date().toISOString(),
   });
   const response = await payloadFetch<PayloadList<PayloadEvent>>(`/api/events?${params}`);
-  if (!response) return sampleEvents.slice(0, options.limit);
+  if (!response) return [];
   return response.docs.map(mapEvent);
 }
 
@@ -105,3 +105,4 @@ export async function getEventBySlug(slug: string): Promise<Event | undefined> {
   if (!response) return sampleEvents.find((event) => event.slug === slug);
   return response.docs[0] ? mapEvent(response.docs[0]) : undefined;
 }
+

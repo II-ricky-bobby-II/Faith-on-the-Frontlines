@@ -13,8 +13,8 @@ export function HostEventSection() {
         <div className="host-intro">
           <span className="host-seal" aria-hidden="true">&#10013;</span>
           <div>
-            <h2 id="host-event-heading" className="display-heading">Bring the frontlines to your church</h2>
-            <p>Your church can make a difference by hearing and sharing what God is doing among the least reached around the world.</p>
+            <h2 id="host-event-heading" className="display-heading">Bring the frontlines to your community</h2>
+            <p>Your church, home, Bible study, or community group can make a difference by hearing and sharing what God is doing among the least reached around the world.</p>
           </div>
         </div>
         <div className="host-copy">
@@ -27,3 +27,4 @@ export function HostEventSection() {
     </section>
   );
 }
+
