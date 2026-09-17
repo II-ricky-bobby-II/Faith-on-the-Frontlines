@@ -35,7 +35,7 @@ export function EventInvitationSignup({ source }: { source: "home" | "events" })
       <div className="event-invite-copy">
         <p className="eyebrow">Stay connected</p>
         <h2 id={`${id}-heading`}>Be invited to the next gathering.</h2>
-        <p>Join the invitation list and we’ll email you when new Faith on the Frontlines events are announced.</p>
+        <p>Join the invitation list and we’ll email you when the next Faith on the Frontlines gathering is announced.</p>
       </div>
       <form className="event-invite-form" onSubmit={submit} noValidate>
         <input type="hidden" name="source" value={source} />
@@ -57,7 +57,7 @@ export function EventInvitationSignup({ source }: { source: "home" | "events" })
         </div>
         <label className="invite-consent" htmlFor={`${id}-consent`}>
           <input id={`${id}-consent`} name="consent" type="checkbox" value="yes" required />
-          <span>Yes, email me about future Faith on the Frontlines events.</span>
+          <span>Yes, email me about future Faith on the Frontlines gatherings.</span>
         </label>
         <div className="invite-action">
           <button className="button button-tan" type="submit" disabled={status === "submitting"}>
@@ -70,3 +70,4 @@ export function EventInvitationSignup({ source }: { source: "home" | "events" })
     </aside>
   );
 }
+

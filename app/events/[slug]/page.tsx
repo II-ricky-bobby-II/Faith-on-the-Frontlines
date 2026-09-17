@@ -18,7 +18,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   if (!event) notFound();
   const date = new Date(`${event.date}T12:00:00Z`);
   const dateLabel = new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" }).format(date);
-  const jsonLd = { "@context": "https://schema.org", "@type": "Event", name: event.title, description: event.description, startDate: event.date, eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode", eventStatus: "https://schema.org/EventScheduled", location: { "@type": "Place", name: event.venue, address: { "@type": "PostalAddress", streetAddress: event.address.split(",")[0], addressLocality: event.city, addressRegion: event.state, addressCountry: "US" } }, image: [event.image], organizer: { "@type": "Organization", name: "Faith on the Frontlines", url: "https://faithonthefrontlines.com" } };
+  const jsonLd = { "@context": "https://schema.org", "@type": "Event", name: event.title, description: event.description, startDate: event.date, eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode", eventStatus: "https://schema.org/EventScheduled", location: { "@type": "Place", name: event.venue, address: { "@type": "PostalAddress", streetAddress: event.address.split(",")[0], addressLocality: event.city, addressRegion: event.state, addressCountry: "US" } }, image: [event.image], organizer: { "@type": "Organization", name: "Faith on the Frontlines", url: "https://faithonthefrontlines.org" } };
   const related = (await getEvents()).filter((item) => item.slug !== event.slug).slice(0, 2);
   const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${event.date.replaceAll("-", "")}/${event.date.replaceAll("-", "")}&location=${encodeURIComponent(event.address)}&details=${encodeURIComponent(event.description)}`;
   return (
@@ -30,3 +30,4 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     </>
   );
 }
+
