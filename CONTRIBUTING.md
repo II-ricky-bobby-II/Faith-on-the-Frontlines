@@ -20,7 +20,9 @@ Open pull requests from the task branch into `develop`. Include:
 - screenshots or deployment notes when the change affects the website UI or hosting;
 - any follow-up work or known limitations.
 
-Wait for required checks and review before merging. A release into `production` should be a separate, deliberate pull request from `develop`.
+Wait for the required `quality` check and review before merging. A release into
+`production` must be a separate pull request from `develop`. Only the repository
+owner, `II-ricky-bobby-II`, may merge that release pull request.
 
 ## Cleanup
 
