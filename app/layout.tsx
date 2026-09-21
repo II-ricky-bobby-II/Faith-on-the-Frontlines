@@ -19,7 +19,7 @@ const wordmarkCondensed = Oswald({
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
-  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "faithonthefrontlines.com";
+  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "faithonthefrontlines.org";
   const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
   const origin = `${protocol}://${host}`;
   return {
@@ -58,3 +58,4 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     </html>
   );
 }
+

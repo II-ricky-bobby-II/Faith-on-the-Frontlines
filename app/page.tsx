@@ -11,30 +11,56 @@ export default async function HomePage() {
     <>
       <Hero />
       <section className="events-section" aria-labelledby="upcoming-events">
-        <div className="section-shell events-layout">
-          <div className="events-intro">
-            <p className="script-label">Upcoming</p>
-            <h2 id="upcoming-events" className="display-heading">
-              <span>Faith on the</span>
-              Frontlines events
-            </h2>
-            <p>
-              Join us in hearing firsthand stories from the frontlines and be
-              inspired to pray, give, and go.
-            </p>
-            <Link className="button button-teal" href="/events">
-              Register to attend
+        {events.length ? (
+          <>
+            <div className="section-shell events-layout">
+              <div className="events-intro">
+                <p className="script-label">Upcoming</p>
+                <h2 id="upcoming-events" className="display-heading">
+                  <span>Faith on the</span>
+                  Frontlines events
+                </h2>
+                <p>
+                  Join us in hearing firsthand stories from the frontlines and be
+                  inspired to pray, give, and go.
+                </p>
+                <Link className="button button-teal" href="/events">
+                  Register to attend
+                </Link>
+              </div>
+              <div className="event-grid event-grid-home">
+                {events.slice(0, 3).map((event) => (
+                  <EventCard key={event.slug} event={event} />
+                ))}
+              </div>
+            </div>
+            <Link className="all-events-link" href="/events">
+              View all upcoming events <span aria-hidden="true">-&gt;</span>
             </Link>
+          </>
+        ) : (
+          <div className="section-shell events-layout events-empty-layout">
+            <div className="events-intro">
+              <p className="script-label">Coming soon</p>
+              <h2 id="upcoming-events" className="display-heading">
+                <span>Faith on the</span>
+                Frontlines gatherings
+              </h2>
+              <p>
+                There are no public gatherings scheduled right now. Join the invitation list and we’ll let you know when the next story is ready to share.
+              </p>
+              <Link className="button button-teal" href="/events">
+                Stay in the loop
+              </Link>
+            </div>
+            <div className="events-coming-soon" aria-label="Upcoming event update">
+              <p className="eyebrow">Next gathering</p>
+              <h3>New dates are on the way.</h3>
+              <p>We’re preparing the next Faith on the Frontlines gathering. In the meantime, explore a story from a past event.</p>
+              <Link className="text-link" href="/events/stories-from-east-africa">Read a past story <span aria-hidden="true">→</span></Link>
+            </div>
           </div>
-          <div className="event-grid event-grid-home">
-            {events.slice(0, 3).map((event) => (
-              <EventCard key={event.slug} event={event} />
-            ))}
-          </div>
-        </div>
-        <Link className="all-events-link" href="/events">
-          View all upcoming events <span aria-hidden="true">-&gt;</span>
-        </Link>
+        )}
         <div className="section-shell">
           <EventInvitationSignup source="home" />
         </div>
@@ -43,3 +69,4 @@ export default async function HomePage() {
     </>
   );
 }
+
