@@ -1,0 +1,11 @@
+table inet fotf {
+    chain input {
+        type filter hook input priority -10; policy drop;
+        ct state established,related accept
+        iifname "lo" accept
+        iifname != "tailscale0" ip saddr { 192.168.88.1, 192.168.88.241, 192.168.88.247 } tcp dport 22 accept
+        iifname "tailscale0" tcp dport 443 accept
+        udp dport 41641 accept
+        ip protocol icmp limit rate 10/second accept
+    }
+}

@@ -1,0 +1,12 @@
+[Unit]
+Description=Faith on the Frontlines guest ingress boundary
+Before=tailscaled.service ssh.service
+After=network-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/nft -f /etc/fotf/guest-firewall.nft
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
