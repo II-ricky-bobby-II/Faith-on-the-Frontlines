@@ -94,11 +94,13 @@ class BridgeTest(unittest.TestCase):
         body = {"path": "example.txt", "base64": base64.b64encode(b"first").decode(), "expected_sha256": None}
         status, result = self.call("PUT", "/files", body)
         self.assertEqual(status, 200)
+        (self.root / "example.txt").chmod(0o755)
         body["base64"] = base64.b64encode(b"second").decode()
         self.assertEqual(self.call("PUT", "/files", body)[0], 409)
         self.assertEqual((self.root / "example.txt").read_bytes(), b"first")
         body["expected_sha256"] = result["sha256"]
         self.assertEqual(self.call("PUT", "/files", body)[0], 200)
+        self.assertEqual((self.root / "example.txt").stat().st_mode & 0o777, 0o755)
 
     def test_jobs_execute_without_server_credentials_and_serialize(self):
         code = "import os,time;print(os.getenv('CREDENTIALS_DIRECTORY','absent'));time.sleep(.3)"

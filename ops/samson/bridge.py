@@ -159,9 +159,11 @@ class Handler(BaseHTTPRequestHandler):
                 content = base64.b64decode(body["base64"], validate=True)
                 if len(content) > MAX_FILE:
                     return self.send_json(413, {"error": "File exceeds transfer limit"})
+                mode = path.stat().st_mode & 0o777 if path.exists() else 0o600
                 path.parent.mkdir(parents=True, exist_ok=True)
                 temporary = path.with_name("." + path.name + "." + uuid.uuid4().hex)
                 temporary.write_bytes(content)
+                temporary.chmod(mode)
                 temporary.replace(path)
                 return self.send_json(200, {"sha256": digest(path)})
         if self.command == "POST" and parsed.path == "/jobs":
