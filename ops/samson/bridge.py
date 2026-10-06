@@ -20,6 +20,7 @@ from urllib.parse import parse_qs, urlsplit
 
 ROOT = Path(os.environ.get("FOTF_ROOT", "/srv/faith-on-the-frontlines")).resolve()
 STATE = Path(os.environ.get("FOTF_STATE", "/var/lib/fotf-bridge"))
+CLIENT = Path(os.environ.get("FOTF_CLIENT", "/opt/fotf/remote.py"))
 MAX_BODY = 4 * 1024 * 1024
 MAX_FILE = 2 * 1024 * 1024
 LOCK = threading.Lock()
@@ -130,6 +131,12 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(self.rfile.read(length))
         if self.command == "GET" and parsed.path == "/health":
             return self.send_json(200, {"ready": (ROOT / "package.json").is_file(), "root": str(ROOT), "busy": LOCK.locked()})
+        if self.command == "GET" and parsed.path == "/client":
+            # Installed by the operator outside the editable checkout. Branch
+            # switches and project writes must not change Cloud bootstrap code.
+            content = CLIENT.read_bytes()
+            return self.send_json(200, {"base64": base64.b64encode(content).decode(),
+                                       "sha256": hashlib.sha256(content).hexdigest()})
         if self.command == "GET" and parsed.path == "/files":
             path = scoped(query.get("path", ["."])[0])
             if path.is_dir():

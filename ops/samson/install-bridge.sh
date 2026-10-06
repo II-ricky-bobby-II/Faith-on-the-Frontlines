@@ -5,6 +5,7 @@ test "$(hostname)" = fotf-workspace
 test "$(id -u)" = 0
 source_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 install -d -m 0700 /etc/fotf
+install -d -o root -g root -m 0755 /opt/fotf
 install -d -o fotf -g fotf -m 0700 /var/lib/fotf-bridge/home
 if ! test -f /etc/fotf/bridge-token; then
   python3 - <<'PY'
@@ -16,6 +17,7 @@ PY
 fi
 printf '{"workstream":"global_fellowship","project":"faith-on-the-frontlines"}\n' >/etc/fotf/workstream.json
 install -o root -g root -m 0644 "$source_dir/bridge.py" /opt/fotf/bridge.py
+install -o root -g root -m 0644 "$source_dir/remote.py" /opt/fotf/remote.py
 install -o root -g root -m 0644 "$source_dir/bridge.service" /etc/systemd/system/fotf-bridge.service
 install -o root -g root -m 0644 "$source_dir/guest-firewall.nft" /etc/fotf/guest-firewall.nft
 install -o root -g root -m 0644 "$source_dir/firewall.service" /etc/systemd/system/fotf-firewall.service

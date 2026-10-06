@@ -67,8 +67,10 @@ its native filesystem. The documented private-network path is HTTP/HTTPS over
 the environment's configured Tailscale connection. General SSH through that
 connection has not been verified. This setup uses the documented HTTPS path.
 
-The cloud task fetches `ops/samson/remote.py` into `work/fotf-remote.py` through
-the authenticated API. Files and
+The cloud task fetches the root-owned `/opt/fotf/remote.py` into
+`work/fotf-remote.py` through the authenticated `/client` endpoint. This survives
+branch changes and prevents project writes from changing Cloud bootstrap code.
+Files and
 commands operate on the guest; temporary edit files and the client itself can
 exist in Cloud. No nested Codex process, API billing account or model login is
 needed in the guest for this workflow.
@@ -184,7 +186,7 @@ the entire server. No project-specific local Codex automation was found.
 On the guest, inspect `systemctl status fotf-bridge tailscaled fotf-firewall`
 and `journalctl -u fotf-bridge`. Completed job records retain 14 days of
 diagnostics; logs retain their final 512 KiB. Root-owned installed service
-code is separate from editable project code; reinstall using
+and client code is separate from editable project code; reinstall using
 `sudo bash ops/samson/install-bridge.sh` after reviewing infrastructure changes.
 
 Use BTH and Samson's guest agent if Tailscale expires. Keep credentials outside
@@ -197,7 +199,7 @@ References: [OpenAI Cloud environments](https://learn.chatgpt.com/docs/environme
 ## Verified migration status — 2026-10-06
 
 The guest passes the production build, three existing site tests, lint and
-generated-binding TypeScript checking. Four HTTP API tests pass on macOS and
+generated-binding TypeScript checking. Five HTTP API tests pass on macOS and
 Linux. The installed API also ran build, tests, lint and types successfully as
 the unprivileged `fotf` account inside its systemd restrictions.
 
@@ -220,13 +222,12 @@ The homepage and events page return HTTP 200 on the VM; an invitation signup
 returns 201 and persists in local D1. The synthetic signup was removed. This
 does not exercise production D1 or email delivery.
 
-The final VM runtime image backup passed both compressed-stream and VMA integrity
-verification (no full restore test):
-`/mnt/samson-backup/dump/vzdump-qemu-111-2026_10_06-15_10_20.vma.zst`, SHA-256
-`61beafee35267b59830718196676afdb6766ebf16c3a0b62f5dc34658666c1fb`.
-It contains the completed runtime and Tailscale enrollment. Normal weekly
-retention replaced the earlier same-week image. A separate portable source
-archive preserves the final Git refs, documents and refreshed session exports.
-Checksums and archive receipts are stored on Samson's backup filesystem.
+VM runtime images pass compressed-stream and VMA integrity verification; no
+full restore test has been performed. Normal weekly retention replaces older
+same-week images. A separate portable archive preserves the Git refs, source,
+documents and refreshed session exports, with every source checksum and both
+JSONL exports verified. Current recovery paths, hashes and the captured source
+commit are recorded at `/mnt/samson-backup/fotf-migration/recovery-receipt.json`
+on the Samson hypervisor, alongside protected checksum sidecars.
 The Mac copy remains a rollback copy until a fresh Cloud task proves access
 independent of the laptop.

@@ -49,8 +49,8 @@ python3 work/fotf-remote.py get README.md --output /tmp/fotf-readme.md
 python3 work/fotf-remote.py put README.md /tmp/fotf-readme.md --expected-sha256 <returned-hash>
 ```
 
-Bootstrap at the start of every task. This fetches the current client from the
-authenticated VM, even before the migration branch reaches GitHub. It requires
+Bootstrap at the start of every task. This fetches the operator-installed client
+from the authenticated VM, independent of its current Git branch. It requires
 `FOTF_VM_URL` and the domain-scoped network secret `FOTF_VM_TOKEN`. Preserve the
 managed HTTPS proxy and certificate verification.
 
@@ -62,7 +62,7 @@ from pathlib import Path
 url = os.environ['FOTF_VM_URL'].rstrip('/')
 if not url.startswith('https://'):
     raise RuntimeError('Verified HTTPS is required')
-request = urllib.request.Request(url + '/files?path=ops/samson/remote.py',
+request = urllib.request.Request(url + '/client',
     headers={'Authorization': 'Bearer ' + os.environ['FOTF_VM_TOKEN']})
 with urllib.request.urlopen(request, timeout=30) as response:
     result = json.load(response)

@@ -8,7 +8,7 @@ from pathlib import Path
 url = os.environ['FOTF_VM_URL'].rstrip('/')
 if not url.startswith('https://'):
     raise RuntimeError('Verified HTTPS is required')
-request = urllib.request.Request(url + '/files?path=ops/samson/remote.py',
+request = urllib.request.Request(url + '/client',
     headers={'Authorization': 'Bearer ' + os.environ['FOTF_VM_TOKEN']})
 # urllib honors the managed HTTPS proxy; do not bypass it or disable TLS.
 with urllib.request.urlopen(request, timeout=30) as response:

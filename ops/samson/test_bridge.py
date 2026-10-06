@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise the actual HTTP service and child processes without a tailnet."""
 import base64
+import hashlib
 import json
 import os
 import socket
@@ -22,6 +23,8 @@ class BridgeTest(unittest.TestCase):
         cls.root.mkdir()
         (cls.root / "package.json").write_text("{}")
         (cls.root / "escape").symlink_to(cls.temp.name)
+        cls.client = Path(cls.temp.name) / "installed-client.py"
+        cls.client.write_bytes(Path(__file__).with_name("remote.py").read_bytes())
         cls.credential = Path(cls.temp.name) / "credentials"
         cls.credential.mkdir()
         cls.token = "t" * 48
@@ -31,7 +34,8 @@ class BridgeTest(unittest.TestCase):
             cls.port = listener.getsockname()[1]
         cls.url = f"http://127.0.0.1:{cls.port}"
         env = {**os.environ, "FOTF_ROOT": str(cls.root), "FOTF_STATE": str(Path(cls.temp.name) / "state"),
-               "FOTF_PORT": str(cls.port), "CREDENTIALS_DIRECTORY": str(cls.credential)}
+               "FOTF_PORT": str(cls.port), "CREDENTIALS_DIRECTORY": str(cls.credential),
+               "FOTF_CLIENT": str(cls.client)}
         cls.process = subprocess.Popen([sys.executable, str(Path(__file__).with_name("bridge.py"))], env=env,
                                        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         for _ in range(100):
@@ -73,6 +77,18 @@ class BridgeTest(unittest.TestCase):
         self.assertEqual(self.call("GET", "/files?path=../credentials/token")[0], 400)
         self.assertEqual(self.call("GET", "/files?path=escape/credentials/token")[0], 400)
         self.assertEqual(self.call("POST", "/jobs", {"argv": ["true"], "cwd": ".."})[0], 400)
+
+    def test_bootstrap_uses_installed_client_outside_checkout(self):
+        self.assertEqual(self.call("GET", "/client", token="wrong")[0], 401)
+        (self.root / "ops/samson").mkdir(parents=True)
+        (self.root / "ops/samson/remote.py").write_text("untrusted project edit")
+        status, result = self.call("GET", "/client")
+        self.assertEqual(status, 200)
+        expected = self.client.read_bytes()
+        self.assertEqual(base64.b64decode(result["base64"]), expected)
+        self.assertEqual(result["sha256"], hashlib.sha256(expected).hexdigest())
+        (self.root / "ops/samson/remote.py").unlink()
+        self.assertEqual(self.call("GET", "/client")[1], result)
 
     def test_file_conflicts_preserve_previous_content(self):
         body = {"path": "example.txt", "base64": base64.b64encode(b"first").decode(), "expected_sha256": None}
