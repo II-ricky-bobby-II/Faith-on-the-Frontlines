@@ -28,6 +28,11 @@ Use `npm run typecheck` to build the effective Cloudflare configuration,
 generate its runtime/binding declarations, then run TypeScript. A fresh
 checkout's plain `npx tsc --noEmit` lacks those generated declarations.
 
+The original dev server duplicated `nodejs_compat` and bundled a May 2026
+runtime that could not accept the project's September compatibility date.
+The duplicate Vite flag is removed and `workerd` is pinned to 1.20261006.1;
+the production compatibility date and other framework versions are retained.
+
 Session snapshots are an archive, not a supported import into Codex's chat
 database. The sidebar project, chat execution hosts and shared Codex settings
 are separate from the repository. Do not copy the Mac's entire Codex account
@@ -62,7 +67,8 @@ its native filesystem. The documented private-network path is HTTP/HTTPS over
 the environment's configured Tailscale connection. General SSH through that
 connection has not been verified. This setup uses the documented HTTPS path.
 
-The cloud task controls the guest through `ops/samson/remote.py`. Files and
+The cloud task fetches `ops/samson/remote.py` into `work/fotf-remote.py` through
+the authenticated API. Files and
 commands operate on the guest; temporary edit files and the client itself can
 exist in Cloud. No nested Codex process, API billing account or model login is
 needed in the guest for this workflow.
@@ -79,17 +85,19 @@ LAN interface from initiating private-network connections except DNS to the
 router. This boundary remains outside the guest. Cloud receives no Proxmox
 credential, production deploy token or access to another project VM.
 
-## Tailscale connection to finish
+## Tailscale connection
 
-Use separate identities for the persistent guest and disposable cloud tasks:
+Separate identities are configured for the persistent guest and disposable
+Cloud tasks. The approved policy grants Cloud only the guest's HTTPS API;
+existing member-device, Horizons, Arise and Atlas rules are preserved.
+The following is the recovery procedure, not outstanding setup:
 
 1. Add tags `tag:fotf-vm` and `tag:fotf-cloud`, owned by tailnet administrators.
 2. Grant `tag:fotf-cloud` only `tcp:443` to `tag:fotf-vm`. Check existing wildcard
    grants; adding a narrow rule does not cancel a broader existing rule.
-   The private migration review contains an exact proposed policy and denial
-   tests. Preserve existing device access while excluding the new Cloud and
-   VM tags from any default allow-all source rule. Recheck the live policy
-   immediately before saving; the proposal is not a live configuration.
+   Preserve existing device access while excluding the Cloud and VM tags from
+   any default allow-all source rule. Recheck the live policy immediately
+   before saving; archived proposals are not live configuration.
 3. Enroll the guest as persistent, tagged `tag:fotf-vm`; disable routes, exit
    node, accepted routes, accepted DNS and Tailscale SSH. Use a single-use,
    non-ephemeral enrollment key. Keep any key in a root-only temporary file,
@@ -102,12 +110,16 @@ Use separate identities for the persistent guest and disposable cloud tasks:
    sudo tailscale status
    ```
 
-5. Record the guest's actual MagicDNS FQDN. The expected name is
-   `fotf-workspace.tail13a215.ts.net`, but verify rather than assume it.
+5. The verified guest IPv4 is `100.117.38.123` and MagicDNS FQDN is
+   `fotf-workspace.tail13a215.ts.net`. Use the hostname over HTTPS 443.
 6. Create a separate reusable **and ephemeral**, tagged `tag:fotf-cloud` auth
    key for the Codex Cloud environment's Advanced > VPN configuration.
    Record its expiration and renew before it expires. Do not snapshot an
    already authenticated Tailscale daemon into the Cloud template.
+
+The Cloud enrollment key expires **2027-01-04**. The guest identity is
+persistent; the single-use guest enrollment credential has been consumed and
+removed. Tailscale Serve is private; Funnel is disabled.
 
 Merge this grant into the existing tailnet policy after inspecting it:
 
@@ -122,8 +134,9 @@ policy with this fragment.
 ## Codex Cloud environment configuration
 
 Create a private environment named **Faith on the Frontlines — Samson** with
-`II-ricky-bobby-II/Faith-on-the-Frontlines` attached. Prepare the operations
-files from this reviewed branch, then use `develop` for integration work.
+`II-ricky-bobby-II/Faith-on-the-Frontlines` attached. The bootstrap fetches its
+client from the VM before this branch is pushed; use `develop` for integration
+work after approval.
 The default Cloud VM is sufficient; no larger paid Cloud VM is needed.
 
 | Field | Value |
@@ -131,9 +144,9 @@ The default Cloud VM is sufficient; no larger paid Cloud VM is needed.
 | Visibility | Only me |
 | Internet | Package managers plus the exact guest FQDN |
 | VPN | Dedicated reusable, ephemeral `tag:fotf-cloud` Tailscale key |
-| Environment variable | `FOTF_VM_URL=https://<verified-guest-fqdn>` |
+| Environment variable | `FOTF_VM_URL=https://fotf-workspace.tail13a215.ts.net` |
 | Network secret | `FOTF_VM_TOKEN`, allowed only for that guest FQDN |
-| Install script | `sh ops/samson/install-cloud.sh` |
+| Install script | Paste `ops/samson/bootstrap-cloud-client.sh` into the field |
 | Start instructions | Contents of `docs/samson-cloud-start.md` |
 
 The guest token is generated at `/etc/fotf/bridge-token`, mode 0600. Enter it
@@ -185,7 +198,20 @@ start, file read/write/conflict/delete checks pass, and guest connections to
 router SSH, Proxmox administration and the QA guest remain blocked. Public
 HTTPS works. The SSH host identity is retained and pinned.
 
-Tailscale is installed but unenrolled. No Cloud environment has been published
-for this workspace. Tailnet permission changes and new credentials require
-the pending browser confirmation. The Mac copy remains a rollback copy until
-a fresh Cloud task proves laptop-independent access and the backup is verified.
+Tailscale is enrolled and private HTTPS Serve survives reboot. The approved
+policy and denial tests are saved. A private Cloud environment draft contains
+the VPN, domain-scoped secret, installer and VM startup instructions. Actual
+managed Cloud acceptance testing and publication remain pending; no reachability
+claim is inferred from saving credentials.
+
+The homepage and events page return HTTP 200 on the VM; an invitation signup
+returns 201 and persists in local D1. The synthetic signup was removed. This
+does not exercise production D1 or email delivery.
+
+The initial VM image backup passed both compressed-stream and VMA integrity
+verification (no full restore test):
+`/mnt/samson-backup/dump/vzdump-qemu-111-2026_10_06-14_14_05.vma.zst`, SHA-256
+`486c2d6ccf99d2702b3cd42a5db2239c6b9068ba4ca957aaa2d3e74f01599d38`.
+It predates final runtime and Tailscale setup; a final backup is still required.
+The Mac copy remains a rollback copy until a fresh Cloud task proves access
+independent of the laptop and the final server backup is verified.
