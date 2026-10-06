@@ -48,6 +48,8 @@ The SSH key lives outside the repository at
 `~/.ssh/codex_fotf_samson_ed25519`; host keys are pinned in
 `~/.ssh/codex_fotf_samson_known_hosts` after obtaining them through Samson's
 authenticated guest agent. Do not copy the private operator key into Cloud.
+The same SSH wrapper is installed separately on the Mac as
+`~/.local/bin/fotf-samson`, so operator access survives retiring the checkout.
 For a browser preview, keep the dev command running and open another operator
 connection with `ops/samson/ssh.sh -L 3000:127.0.0.1:3000`, then browse
 `http://localhost:3000`. This preview path depends on the operator device;
