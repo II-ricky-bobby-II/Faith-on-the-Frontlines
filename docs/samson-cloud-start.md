@@ -10,8 +10,9 @@ workspace. Do not fall back to Blake's Mac or another business workstream.
    HTTPS or authentication fails, report that failure; do not bypass TLS or
    the configured HTTPS proxy. Never echo the VM token or VPN key.
 2. Run `python3 work/fotf-remote.py exec -- git status --short --branch` and
-   `python3 work/fotf-remote.py get AGENTS.md`. Follow the repository's current
-   instructions. Inspect the VM's Git state before editing. Use an up-to-date
+   `python3 work/fotf-remote.py get AGENTS.md --output /tmp/fotf-AGENTS.md`.
+   Read that file and follow its instructions. Inspect the VM's Git state
+   before editing. Use an up-to-date
    `develop` base and a new task branch; preserve uncommitted user work.
 3. Use remote commands and file transfers for the VM project. Native shell,
    file-edit and Git tools in Cloud operate on Cloud files, not the VM.

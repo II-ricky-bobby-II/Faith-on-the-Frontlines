@@ -80,6 +80,10 @@ execution as the project user; treat it as a credential for the entire
 development workspace. Tailscale Funnel and public port forwarding are not
 part of this setup.
 
+Individual API file transfers are limited to 2 MiB and job diagnostics to
+512 KiB. Large exports are retained on the VM and in the server archive;
+operator SSH has no API transfer limit.
+
 The guest accepts Tailscale TCP443 only. Proxmox independently prevents its
 LAN interface from initiating private-network connections except DNS to the
 router. This boundary remains outside the guest. Cloud receives no Proxmox
@@ -173,6 +177,10 @@ VM 111 was added to that job on 2026-10-06. The original roster and all other
 job settings were preserved; its name still includes `nightly`, but its actual
 schedule is weekly.
 
+These recovery copies are on Samson's backup storage. They protect against
+guest mistakes and disk-volume loss, but are not an offsite copy for loss of
+the entire server. No project-specific local Codex automation was found.
+
 On the guest, inspect `systemctl status fotf-bridge tailscaled fotf-firewall`
 and `journalctl -u fotf-bridge`. Completed job records retain 14 days of
 diagnostics; logs retain their final 512 KiB. Root-owned installed service
@@ -199,7 +207,11 @@ router SSH, Proxmox administration and the QA guest remain blocked. Public
 HTTPS works. The SSH host identity is retained and pinned.
 
 Tailscale is enrolled and private HTTPS Serve survives reboot. The approved
-policy and denial tests are saved. A private Cloud environment draft contains
+policy and denial tests are saved. A temporary userspace peer with exactly
+`tag:fotf-cloud` passed MagicDNS, verified HTTPS, authenticated health, a
+conflict-checked file round trip and a command as `fotf`; VM SSH was unreachable.
+The temporary peer was removed afterward. This is separate from validation of
+OpenAI's managed HTTPS proxy. A private Cloud environment draft contains
 the VPN, domain-scoped secret, installer and VM startup instructions. Actual
 managed Cloud acceptance testing and publication remain pending; no reachability
 claim is inferred from saving credentials.
@@ -208,10 +220,13 @@ The homepage and events page return HTTP 200 on the VM; an invitation signup
 returns 201 and persists in local D1. The synthetic signup was removed. This
 does not exercise production D1 or email delivery.
 
-The initial VM image backup passed both compressed-stream and VMA integrity
+The final VM runtime image backup passed both compressed-stream and VMA integrity
 verification (no full restore test):
-`/mnt/samson-backup/dump/vzdump-qemu-111-2026_10_06-14_14_05.vma.zst`, SHA-256
-`486c2d6ccf99d2702b3cd42a5db2239c6b9068ba4ca957aaa2d3e74f01599d38`.
-It predates final runtime and Tailscale setup; a final backup is still required.
+`/mnt/samson-backup/dump/vzdump-qemu-111-2026_10_06-15_10_20.vma.zst`, SHA-256
+`61beafee35267b59830718196676afdb6766ebf16c3a0b62f5dc34658666c1fb`.
+It contains the completed runtime and Tailscale enrollment. Normal weekly
+retention replaced the earlier same-week image. A separate portable source
+archive preserves the final Git refs, documents and refreshed session exports.
+Checksums and archive receipts are stored on Samson's backup filesystem.
 The Mac copy remains a rollback copy until a fresh Cloud task proves access
-independent of the laptop and the final server backup is verified.
+independent of the laptop.
