@@ -22,7 +22,8 @@ ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
 RestrictSUIDSGID=true
-RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+# Node's networkInterfaces()/getifaddrs needs Linux netlink for address lookup.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
 MemoryMax=3G
 MemorySwapMax=1G
 TasksMax=256
