@@ -1,0 +1,22 @@
+name: Release candidate freshness
+
+on:
+  pull_request:
+    branches: [production]
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  release-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          sparse-checkout: ops/develop-events
+
+      - name: Match release head to verification report
+        run: node ops/develop-events/scripts/check-release-candidate.mjs
