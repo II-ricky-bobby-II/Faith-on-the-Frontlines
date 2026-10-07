@@ -1,0 +1,42 @@
+name: Develop event bridge
+
+on:
+  pull_request:
+    branches: [develop, production]
+    paths:
+      - 'ops/develop-events/**'
+      - '.github/workflows/develop-events-check.yml'
+      - '.github/workflows/notify-develop-merge.yml'
+      - '.github/workflows/release-candidate.yml'
+  push:
+    branches: [develop]
+    paths:
+      - 'ops/develop-events/**'
+      - '.github/workflows/develop-events-check.yml'
+      - '.github/workflows/notify-develop-merge.yml'
+      - '.github/workflows/release-candidate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  develop-events:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: ops/develop-events
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Use Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ops/develop-events/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
