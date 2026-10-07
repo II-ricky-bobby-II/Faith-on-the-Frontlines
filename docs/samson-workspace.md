@@ -19,10 +19,12 @@ Cloudflare D1 remain in their existing hosted services. The workstream is
 | Startup | Guest starts with Samson; private workspace API starts with guest |
 
 The migration includes source, assets, the complete Git directory and refs,
-ignored Drizzle migration files, Wrangler state and two locally identified
+ignored Drizzle migration files, Wrangler deployment metadata and two locally identified
 Codex session snapshots. Mac `node_modules`, build caches and Python bytecode
 are excluded because they are disposable or platform-specific. Linux
 dependencies are reinstalled from `package-lock.json`.
+No persistent Mac D1 directory was present. The VM's local D1 is used for
+development; the production D1 remains in Cloudflare.
 
 Use `npm run typecheck` to build the effective Cloudflare configuration,
 generate its runtime/binding declarations, then run TypeScript. A fresh
