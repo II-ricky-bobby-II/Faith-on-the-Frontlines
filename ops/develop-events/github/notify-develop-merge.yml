@@ -1,0 +1,34 @@
+name: Notify David of develop merges
+
+on:
+  pull_request_target:
+    branches: [develop]
+    types: [closed]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: notify-develop-${{ github.event.pull_request.number }}-${{ github.event.pull_request.merge_commit_sha }}
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Checkout only the trusted base commit; never the contributor's head.
+      # v4.2.2, fixed immutable action revision.
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: ops/develop-events
+
+      - name: Deliver signed merged-PR event to David
+        env:
+          FOTF_EVENTS_URL: ${{ vars.FOTF_EVENTS_URL }}
+          FOTF_EVENTS_SITE_TOKEN: ${{ secrets.FOTF_EVENTS_SITE_TOKEN }}
+        run: node ops/develop-events/scripts/send-event.mjs
