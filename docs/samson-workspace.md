@@ -166,6 +166,10 @@ The private environment **Faith on the Frontlines — Samson** is published with
 `II-ricky-bobby-II/Faith-on-the-Frontlines` attached. The bootstrap fetches its
 client from the VM independently of the branch in the Cloud checkout; use
 `develop` for integration work after approval.
+The verified checkout is currently `chore/samson-vm-cloud`.
+[PR #5](https://github.com/II-ricky-bobby-II/Faith-on-the-Frontlines/pull/5)
+must be reviewed and merged before starting normal new feature branches from
+`develop`, so those branches include the tested Linux runtime corrections.
 The default Cloud VM is sufficient; no larger paid Cloud VM is needed.
 
 | Field | Value |
