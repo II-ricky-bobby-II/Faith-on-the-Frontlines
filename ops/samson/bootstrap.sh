@@ -24,6 +24,22 @@ net.ipv6.conf.all.disable_ipv6=1
 net.ipv6.conf.default.disable_ipv6=1
 EOF
 sysctl --system >/dev/null
+# Miniflare connects its runtime inspector at 127.0.0.1. Keep localhost IPv4
+# when IPv6 is disabled, including the cloud-init template used after reboot.
+python3 - <<'PY'
+from pathlib import Path
+for filename in ['/etc/hosts', '/etc/cloud/templates/hosts.debian.tmpl']:
+    path = Path(filename)
+    lines = []
+    for line in path.read_text().splitlines(keepends=True):
+        head, marker, comment = line.rstrip('\n').partition('#')
+        fields = head.split()
+        if fields and fields[0] == '::1' and 'localhost' in fields[1:]:
+            fields.remove('localhost')
+            line = ' '.join(fields) + (' #' + comment if marker else '') + '\n'
+        lines.append(line)
+    path.write_text(''.join(lines))
+PY
 if ! test -f /swapfile; then
   fallocate -l 2G /swapfile
   chmod 600 /swapfile
