@@ -4,6 +4,8 @@ Production-ready ministry website for Faith on the Frontlines, a Global Fellowsh
 
 ## Local development
 
+For the server workspace and Codex Cloud setup, see [Samson workspace](docs/samson-workspace.md).
+
 Requires Node.js 22.13 or newer.
 
 ```bash

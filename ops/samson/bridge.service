@@ -1,0 +1,33 @@
+[Unit]
+Description=Faith on the Frontlines private workspace API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=fotf
+Group=fotf
+WorkingDirectory=/srv/faith-on-the-frontlines
+ExecStart=/usr/bin/python3 /opt/fotf/bridge.py
+LoadCredential=token:/etc/fotf/bridge-token
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/faith-on-the-frontlines /var/lib/fotf-bridge
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+# Node's networkInterfaces()/getifaddrs needs Linux netlink for address lookup.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+MemoryMax=3G
+MemorySwapMax=1G
+TasksMax=256
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target
