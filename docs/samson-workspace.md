@@ -33,6 +33,19 @@ runtime that could not accept the project's September compatibility date.
 The duplicate Vite flag is removed and `workerd` is pinned to 1.20261006.1;
 the production compatibility date and other framework versions are retained.
 
+`npm start` previews the compiled Worker locally with Wrangler on loopback
+port 3000 after `npm run build`, using the root `.wrangler/state` database shared
+with development. Wrangler's default for a generated build configuration would
+create an empty database beneath `dist/server`. Running `cloudflare:` imports
+through the Node-only `vinext start` path fails. The API service permits `AF_NETLINK` for
+Node's interface lookup, needed to start the dev server inside the service;
+its existing user, privilege and network boundaries still apply.
+The VM maps `localhost` to IPv4 only, including its cloud-init hosts template.
+This avoids Miniflare's inspector hang when IPv6 is disabled and its runtime
+binds `::1` while the controller connects to `127.0.0.1`. The original IPv6
+restrictions are retained. See the
+[upstream Miniflare issue](https://github.com/cloudflare/workers-sdk/issues/14077).
+
 Session snapshots are an archive, not a supported import into Codex's chat
 database. The sidebar project, chat execution hosts and shared Codex settings
 are separate from the repository. Do not copy the Mac's entire Codex account
@@ -123,9 +136,19 @@ The following is the recovery procedure, not outstanding setup:
    Record its expiration and renew before it expires. Do not snapshot an
    already authenticated Tailscale daemon into the Cloud template.
 
-The Cloud enrollment key expires **2027-01-04**. The guest identity is
-persistent; the single-use guest enrollment credential has been consumed and
-removed. Tailscale Serve is private; Funnel is disabled.
+The guest's tagged device identity has **key expiry disabled**; its machine
+detail explicitly reports **No expiry**. Its single-use enrollment credential
+has been consumed and removed. Tailscale Serve is private; Funnel is disabled.
+
+The reusable Cloud enrollment auth key expires **2027-01-04**. Tailscale auth
+keys have a 90-day maximum; disabling a device's expiry does not extend an auth
+key used to enroll fresh Cloud sessions. Tailscale OAuth credentials can mint
+keys indefinitely, but the available Codex VPN field/documentation does not
+establish support for OAuth credentials and their required device tags. Do
+not label this Cloud credential non-expiring. Renew its scoped auth key before
+that date unless Codex adds a verified OAuth or automatic renewal mechanism.
+The protected recovery copy is `/etc/fotf/cloud-enrollment.key` on the guest;
+no copy is committed to Git.
 
 Merge this grant into the existing tailnet policy after inspecting it:
 
@@ -139,10 +162,10 @@ policy with this fragment.
 
 ## Codex Cloud environment configuration
 
-Create a private environment named **Faith on the Frontlines — Samson** with
+The private environment **Faith on the Frontlines — Samson** is published with
 `II-ricky-bobby-II/Faith-on-the-Frontlines` attached. The bootstrap fetches its
-client from the VM before this branch is pushed; use `develop` for integration
-work after approval.
+client from the VM independently of the branch in the Cloud checkout; use
+`develop` for integration work after approval.
 The default Cloud VM is sufficient; no larger paid Cloud VM is needed.
 
 | Field | Value |
@@ -167,6 +190,11 @@ remote lint, types, tests and build; denied paths and wrong token; denied
 private-network destinations. The task must use no Mac-local paths or tools.
 Only after that proof and a verified server backup should the Mac checkout be
 retired. Existing local chats keep their original execution mode.
+
+The managed execution sandbox can block a connection to the configured proxy.
+Use the runtime's supported network approval/escalation when that occurs;
+the tested installer succeeds through that path with the VPN, policy and
+secret bindings ready. Keep the proxy and TLS verification enabled.
 
 ## Recovery and maintenance
 
@@ -194,7 +222,9 @@ Git. Rotate `/etc/fotf/bridge-token`, restart the API, update the Cloud network
 secret and verify from a new task when revoking Cloud access.
 
 References: [OpenAI Cloud environments](https://learn.chatgpt.com/docs/environments/cloud-environments),
-[Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve).
+[Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve),
+[auth key expiry](https://tailscale.com/docs/features/access-control/auth-keys),
+[OAuth clients](https://tailscale.com/docs/features/oauth-clients).
 
 ## Verified migration status — 2026-10-06
 
@@ -213,21 +243,44 @@ policy and denial tests are saved. A temporary userspace peer with exactly
 `tag:fotf-cloud` passed MagicDNS, verified HTTPS, authenticated health, a
 conflict-checked file round trip and a command as `fotf`; VM SSH was unreachable.
 The temporary peer was removed afterward. This is separate from validation of
-OpenAI's managed HTTPS proxy. A private Cloud environment draft contains
-the VPN, domain-scoped secret, installer and VM startup instructions. Actual
-managed Cloud acceptance testing and publication remain pending; no reachability
-claim is inferred from saving credentials.
+OpenAI's managed HTTPS proxy. The private environment is now **published**, and
+a new managed Cloud task passed acceptance on source commit `ff49df3` after
+the runtime corrections. Its verbatim installer, VPN, enforced network policy
+and secret bindings are ready. It used verified TLS and the managed proxy,
+with the supported execution permission, without Mac-local paths or tools.
+The receipt is `outputs/samson-migration/cloud-acceptance.json` on the VM.
 
-The homepage and events page return HTTP 200 on the VM; an invitation signup
-returns 201 and persists in local D1. The synthetic signup was removed. This
+Cloud verified authenticated health, file create/read/update/delete, stale-hash
+rejection, executable-mode preservation, wrong-token and traversal rejection,
+commands as `fotf` without sudo, and sequential build/tests, lint, types and
+all five bridge tests. Other private destinations were forbidden by the proxy;
+the VM's SSH path was unavailable. These are scoped-path diagnostics; Cloud
+did not independently read the live tailnet ACL.
+
+From Cloud, both dev and built previews return HTTP 200 for home/events.
+Invitation validation, honeypot handling and a signup returning 201 passed;
+both modes use the existing root D1. Synthetic signups were read back, removed
+exactly, and existing records preserved. No preview processes remain. This
 does not exercise production D1 or email delivery.
 
-VM runtime images pass compressed-stream and VMA integrity verification; no
-full restore test has been performed. Normal weekly retention replaces older
+VM runtime images pass compressed-stream and VMA integrity verification. The
+2026-10-06 image was also fully restored to temporary VM 70111. Its network
+adapter and cloud-init media were removed before boot, so its copied identity
+never contacted the LAN or tailnet. The restored guest verified all 82 source
+hashes, both JSONL archives, the expected clean Git commit, required services,
+the root-owned client, actual API health/authentication/path boundaries, a job
+as `fotf`, and all five HTTP API tests. The temporary VM was then removed.
+The receipt is `outputs/samson-migration/restore-receipt.json` on the project
+workspace. Normal weekly retention replaces older
 same-week images. A separate portable archive preserves the Git refs, source,
 documents and refreshed session exports, with every source checksum and both
 JSONL exports verified. Current recovery paths, hashes and the captured source
 commit are recorded at `/mnt/samson-backup/fotf-migration/recovery-receipt.json`
 on the Samson hypervisor, alongside protected checksum sidecars.
-The Mac copy remains a rollback copy until a fresh Cloud task proves access
-independent of the laptop.
+The Mac working checkout is no longer needed for Cloud execution. Retire only
+that project directory after checking the current recovery receipt; retain the
+operator key/wrapper and shared Codex account files outside it. Existing local
+chats do not change execution host. For new work, select Cloud and **Faith on
+the Frontlines — Samson**. Keep an independent copy of private recovery data
+before permanently discarding the last local backup; Samson's recovery storage
+is still on the same server.
