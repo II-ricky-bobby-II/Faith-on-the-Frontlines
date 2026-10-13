@@ -28,7 +28,7 @@ export function verifyMetadata({ repository, pr, commit, develop, production, an
   assert.ok(isSha(commit.commit.tree.sha));
   assert.ok(isSha(develop.commit.sha) && isSha(production.commit.sha));
   assert.ok(["ahead", "identical"].includes(ancestry.status), "Candidate must be contained in develop");
-  assert.ok(["ahead", "identical"].includes(unreleased.status), "Production must be an ancestor of candidate");
+  assert.ok(isSha(unreleased.merge_base_commit?.sha), "Production and candidate must have common history");
   const author = { login: pr.user?.login, id: pr.user?.id };
   const mergeActor = { login: pr.merged_by?.login, id: pr.merged_by?.id };
   const reasons = [];
@@ -38,6 +38,8 @@ export function verifyMetadata({ repository, pr, commit, develop, production, an
     schema: 1, workstream: "global_fellowship", repository: REPOSITORY, repositoryId: REPOSITORY_ID,
     pr: number, candidate, tree: commit.commit.tree.sha, mergedAt: pr.merged_at, author, mergeActor,
     develop: develop.commit.sha, production: production.commit.sha,
+    mergeBase: unreleased.merge_base_commit.sha,
+    alreadyReleased: ["identical", "behind"].includes(unreleased.status),
     superseded: develop.commit.sha !== candidate, decision: reasons.length ? "paused" : "expected", reasons,
     releaseApproved: false, verifiedAt: new Date().toISOString(),
   };

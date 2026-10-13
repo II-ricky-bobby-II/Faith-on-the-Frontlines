@@ -20,7 +20,8 @@ const production = option("--production") ?? git("rev-parse", "origin/production
 assert.ok(isSha(candidate) && isSha(production), "Full candidate and production SHAs required");
 assert.equal(git("rev-parse", "HEAD"), candidate, "Checkout must be the exact candidate");
 assert.equal(git("status", "--porcelain", "--untracked-files=normal"), "", "Candidate checkout must be clean");
-git("merge-base", "--is-ancestor", production, candidate);
+const mergeBase = git("merge-base", production, candidate);
+assert.ok(isSha(mergeBase), "Candidate and production need a shared history");
 
 // Preserve the normal proxy/CA boundary, and withhold app/provider credentials from candidate commands.
 const allowedEnv = /^(PATH|HOME|TMPDIR|TMP|TEMP|USER|LOGNAME|SHELL|SystemRoot|LANG|LC_.*|CI|TERM|HTTP_PROXY|HTTPS_PROXY|ALL_PROXY|NO_PROXY|http_proxy|https_proxy|all_proxy|no_proxy|SSL_CERT_FILE|SSL_CERT_DIR|NODE_EXTRA_CA_CERTS|REQUESTS_CA_BUNDLE|CURL_CA_BUNDLE|NODE_USE_ENV_PROXY|PLAYWRIGHT_BROWSERS_PATH)$/;
@@ -31,7 +32,7 @@ env.MINIFLARE_REGISTRY_PATH = join(out, "registry");
 env.CI = "true";
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 const wrangler = join(site, "node_modules/wrangler/bin/wrangler.js");
-const report = { schema: 1, workstream: "global_fellowship", candidate, production, tree: git("rev-parse", "HEAD^{tree}"),
+const report = { schema: 1, workstream: "global_fellowship", candidate, production, mergeBase, tree: git("rev-parse", "HEAD^{tree}"),
   mode: qualification ? "runner-qualification" : "merged-candidate", node: process.version, platform: process.platform,
   startedAt: new Date().toISOString(), stages: [], technicalStatus: "running", releaseReady: false,
   remainingReviews: ["Complete unreleased code review", "Codex Security diff scan", "Manual accessibility and visual review", "Owner release approval"],
