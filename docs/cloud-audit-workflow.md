@@ -117,12 +117,12 @@ require action-time owner confirmation or handoff.
 1. Review this replacement branch separately from PRs #5/#6. Obtain AGENTS.md's
    approval to push/open its PR into develop, then separate approval to merge.
    Preserve current review/quality and owner-only production rules.
-2. Recover authenticated access to the recorded bridge's owning workspace. At
-   October 13 the current connector returned project-not-found, and the browser
-   listed Risen Code as Deactivated. This is an access/health gap, not proof of
-   deletion. Do not recreate it, rotate its subscription encryption key, or fall
-   back to another workstream's account. Inspect the exact private project and
-   connection/subscription/receipt status before changing it.
+2. The owner confirmed the original private bridge Site was deleted from this
+   current workspace. Use replacement project
+   `appgprj_6ace8c117a9c8191807884f887f3be8c` at the same Site URL, with a fresh
+   encryption key and database. Old subscriptions are not recovered. Workspace
+   reactivation is unnecessary; keep this workflow in its existing account.
+   Verify its authenticated policy/status, subscription and signed receipt.
 3. Publish only reviewed environment configuration through the supported Cloud
    editor. A draft setup was started October 13 from existing develop; its base
    build/lint/unit results do not qualify this replacement candidate. Record the
@@ -131,7 +131,7 @@ require action-time owner confirmation or handoff.
    retains the production database identifier for local emulation. Replace that
    draft with this branch's corrected runtime and synthetic fixture configuration;
    do not publish that workaround as a release-equivalent runner.
-4. Connect the recorded private release-coordination plugin to David and subscribe
+4. Connect the replacement private release-coordination plugin to David and subscribe
    to `github.develop.merged`. Configure repository variable `FOTF_EVENTS_URL` and
    private secret `FOTF_EVENTS_SITE_TOKEN` only after authenticated bridge review.
    Never print secret values. At October 13 both fields were absent.
