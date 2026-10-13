@@ -120,11 +120,9 @@ References: [MCP Events](https://developers.openai.com/plugins/build/mcp-events)
 
 ## October 13 activation facts
 
-GitHub verified repository ID `1355135878`, Mitchell ID `324176645`, empty
-repository Actions secrets/variables and both old PRs still open. The current
-Sites connector cannot find the recorded project
-`appgprj_6ac6754b4cb48191b55fb85e36531f1a`. The browser lists the Risen Code
-workspace as Deactivated. This does not prove deletion or loss of encrypted
-subscriptions. Recover access to the exact owning account/workspace before
-reading its authenticated health or publishing changes; do not recreate the
-bridge or rotate its encryption key as a workaround.
+The owner confirmed that the original bridge Site was deleted from the current
+workspace. Workspace reactivation is unnecessary. The replacement private Site
+has project ID `appgprj_6ace8c117a9c8191807884f887f3be8c` and reuses the URL above.
+It uses a fresh encryption key and a fresh database; old subscription state is
+not recovered. Subscription, signed delivery and fresh Cloud artifact recovery
+must be verified before claiming activation.

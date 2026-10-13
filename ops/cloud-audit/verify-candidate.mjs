@@ -7,7 +7,8 @@ import { pathToFileURL } from "node:url";
 export const REPOSITORY = "II-ricky-bobby-II/Faith-on-the-Frontlines";
 export const REPOSITORY_ID = 1355135878;
 export const AUTHOR = { login: "mitchell-FOF", id: 324176645 };
-export const MERGE_ACTORS = [AUTHOR, { login: "II-ricky-bobby-II", id: 116130409 }];
+export const OWNER = { login: "II-ricky-bobby-II", id: 116130409 };
+export const MERGE_ACTORS = [AUTHOR, OWNER];
 export const isSha = value => typeof value === "string" && /^[0-9a-f]{40}$/.test(value);
 const sameIdentity = (actual, expected) => actual?.login === expected.login && actual?.id === expected.id;
 
@@ -61,13 +62,32 @@ export async function verify(number, candidate, api = path => JSON.parse(execFil
   return verifyMetadata({ repository, pr, commit, develop, production, ancestry, unreleased }, candidate, number);
 }
 
+// Executor qualification does not approve an unexpected contribution or a release.
+// GitHub supplies this context to the trusted workflow; recovery must verify run provenance.
+export function qualifyOwner(receipt, { actorId, eventName }) {
+  assert.equal(eventName, "workflow_dispatch", "Qualification requires a manual workflow dispatch");
+  assert.equal(actorId, String(OWNER.id), "Only the owner may request executor qualification");
+  assert.equal(receipt.repository, REPOSITORY);
+  assert.equal(receipt.repositoryId, REPOSITORY_ID);
+  assert.ok(isSha(receipt.candidate) && isSha(receipt.tree));
+  assert.ok(sameIdentity(receipt.author, OWNER), "Qualification requires an owner-authored contribution");
+  assert.ok(sameIdentity(receipt.mergeActor, OWNER), "Qualification requires an owner merge");
+  assert.equal(receipt.decision, "paused");
+  assert.deepEqual(receipt.reasons, ["Unexpected PR author: alert Blake and pause"]);
+  assert.equal(receipt.releaseApproved, false);
+  return { ...receipt, qualification: { mode: "runner-qualification", requestedBy: OWNER,
+    eventName, releaseReady: false, identityPausePreserved: true } };
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    const [number, candidate, output = "outputs/candidate.json"] = process.argv.slice(2);
-    const receipt = await verify(Number(number), candidate);
+    const [number, candidate, output = "outputs/candidate.json", mode] = process.argv.slice(2);
+    assert.ok(mode === undefined || mode === "--qualify-owner", "Unknown verification mode");
+    let receipt = await verify(Number(number), candidate);
+    if (mode) receipt = qualifyOwner(receipt, { actorId: process.env.GITHUB_ACTOR_ID, eventName: process.env.GITHUB_EVENT_NAME });
     await mkdir(dirname(output), { recursive: true });
     await writeFile(output, JSON.stringify(receipt, null, 2) + "\n");
-    if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `decision=${receipt.decision}\ncandidate=${receipt.candidate}\nproduction=${receipt.production}\n`);
+    if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `decision=${receipt.decision}\ncandidate=${receipt.candidate}\nproduction=${receipt.production}\nmode=${receipt.qualification?.mode ?? "merged-candidate"}\n`);
     console.log(JSON.stringify(receipt, null, 2));
   } catch (error) {
     console.error(`Candidate verification failed: ${error.message}`);

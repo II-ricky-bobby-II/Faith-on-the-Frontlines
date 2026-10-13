@@ -29,8 +29,11 @@ in **Faith on the Frontlines — Cloud audits**, including this instruction:
 > Follow AGENTS.md and `ops/cloud-audit/cloud-start.md`; independently verify
 > actual merge/ancestry and numeric author/merge actor identities before any
 > audit dispatch. Review the complete production-to-candidate diff. Run locked
-> code/tests/lint/type checks, canonical Codex Security diff review, browser,
-> accessibility, responsive and isolated integration checks. Retain exact
+> canonical Codex Security diff review in Cloud. Dispatch the trusted GitHub
+> Actions audit for locked code/tests/lint/type checks, sandboxed browser,
+> accessibility, responsive and isolated integration checks. Cloud is the
+> coordinator and recovery environment; do not execute candidate dependency
+> scripts or bypass the unavailable Chromium sandbox there. Retain exact
 > evidence through the approved GitHub artifact path and verify recovery from
 > another fresh task. Report failures, limitations and incomplete coverage.
 > Do not use Samson, Mac forwarding, production D1 or live email as fixtures.
