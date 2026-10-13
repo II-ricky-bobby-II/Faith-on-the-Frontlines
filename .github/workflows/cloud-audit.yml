@@ -1,0 +1,99 @@
+name: Cloud audit evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Actual merged develop PR number
+        required: true
+        type: string
+      candidate_sha:
+        description: Full immutable merge SHA
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      decision: ${{ steps.identity.outputs.decision }}
+      candidate: ${{ steps.identity.outputs.candidate }}
+      production: ${{ steps.identity.outputs.production }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.13.0"
+      - name: Independently verify merged candidate and numeric identities
+        id: identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+        run: node ops/cloud-audit/verify-candidate.mjs "$PR_NUMBER" "$CANDIDATE_SHA" evidence/candidate.json
+      - name: Retain identity decision, including pauses
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fotf-identity-${{ github.run_id }}
+          path: evidence/candidate.json
+          retention-days: 90
+
+  audit:
+    needs: verify
+    if: needs.verify.outputs.decision == 'expected'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # The orchestrator and its dependencies come from reviewed develop.
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ needs.verify.outputs.candidate }}
+          path: site
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: |
+            harness/package-lock.json
+            site/package-lock.json
+      - name: Install locked candidate and harness tooling
+        run: |
+          npm ci --prefix harness
+          npm ci --prefix site
+          node harness/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Audit exact candidate using isolated fixtures
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          CANDIDATE_SHA: ${{ needs.verify.outputs.candidate }}
+          PRODUCTION_SHA: ${{ needs.verify.outputs.production }}
+        run: node harness/ops/cloud-audit/run.mjs --site site --pr "$PR_NUMBER" --candidate "$CANDIDATE_SHA" --production "$PRODUCTION_SHA" --out evidence
+      - name: Preserve results even when checks fail
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fotf-audit-${{ needs.verify.outputs.candidate }}-${{ github.run_id }}
+          path: |
+            evidence/**
+            !evidence/d1/**
+            !evidence/registry/**
+            !evidence/wrangler.log
+          retention-days: 90
+          if-no-files-found: error

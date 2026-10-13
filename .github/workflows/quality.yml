@@ -39,3 +39,11 @@ jobs:
 
       - name: Test
         run: npm test
+
+      - name: Check generated binding types
+        run: |
+          npx wrangler types --config dist/server/wrangler.json
+          npx tsc --noEmit
+
+      - name: Verify candidate identity guards
+        run: node --test ops/cloud-audit/tests/*.test.mjs
