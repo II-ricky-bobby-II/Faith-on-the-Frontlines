@@ -20,8 +20,20 @@ The runner's environment filter is not OS isolation. Verify that the fresh
 executor exposes no credential files or privileged service identity to candidate
 code or dependency installation. Keep Actions dispatch authority outside it.
 
-Run the trusted `ops/cloud-audit/run.mjs` on the clean exact candidate with the
-full production base. Review the entire unreleased diff. Use the installed Codex
+Cloud is the review and recovery coordinator. The current managed executor
+cannot launch sandboxed Chromium and exposes platform GitHub authentication
+and a Docker socket. Do not execute candidate code or dependency install scripts
+in that executor. Use the reviewed `cloud-audit.yml` GitHub Actions runner for
+build, browser and isolated fixture execution. Keep Chromium sandboxing enabled;
+do not use Docker or sandbox-disabling flags to bypass the Cloud restriction.
+
+Independently verify the merged candidate, then dispatch the reviewed workflow
+from develop with its PR number and full SHA. The ordinary path requires the
+expected author. For a manual owner-authored bootstrap test, only the owner may
+set `qualify_executor=true`; this retains the identity pause, reports
+`runner-qualification`, and never approves the contribution or a release.
+
+Review the entire unreleased diff. Use the installed Codex
 Security plugin's diff workflow for the immutable production-to-candidate range.
 Inspect screenshots, automated accessibility findings and manual keyboard/visual
 behavior; add checks for important changed flows and integrations. Synthetic D1
@@ -30,7 +42,9 @@ and local CMS success cannot prove production bindings or live email readiness.
 Save exact candidate evidence and independent review/security outputs using the
 approved durable artifact path described in `docs/cloud-audit-workflow.md`.
 Recover the exact GitHub Actions artifact in a second fresh Cloud task and
-verify its hashes, run provenance and candidate. Report ready/failed/incomplete,
+verify its hashes, workflow source revision, owner/caller identity, run and
+artifact provenance and candidate. Do not rerun downloaded scripts or candidate
+code in Cloud. Report ready/failed/incomplete,
 the exact SHAs, checks and limitations. A runner pass is not release approval.
 
 Every actual develop merge wakes David through the signed event subscription.

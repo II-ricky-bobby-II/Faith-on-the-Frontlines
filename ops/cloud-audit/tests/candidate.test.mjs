@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { verifyMetadata, REPOSITORY, REPOSITORY_ID, AUTHOR } from "../verify-candidate.mjs";
+import { verifyMetadata, qualifyOwner, REPOSITORY, REPOSITORY_ID, AUTHOR, OWNER } from "../verify-candidate.mjs";
 
 const candidate = "a".repeat(40);
 const fixture = () => ({ repository: { full_name: REPOSITORY, id: REPOSITORY_ID },
@@ -42,4 +42,26 @@ test("a newer develop head retains the candidate but supersedes release evidence
   const f = fixture(); f.develop.commit.sha = "e".repeat(40); f.ancestry.status = "ahead";
   const result = verifyMetadata(f, candidate, 9);
   assert.equal(result.superseded, true); assert.equal(result.releaseApproved, false);
+});
+
+test("manual owner qualification preserves the author pause and never approves release", () => {
+  const f = fixture(); f.pr.user = OWNER; f.pr.merged_by = OWNER;
+  const receipt = verifyMetadata(f, candidate, 9);
+  const context = { actorId: String(OWNER.id), eventName: "workflow_dispatch" };
+  const result = qualifyOwner(receipt, context);
+  assert.equal(result.decision, "paused"); assert.equal(result.releaseApproved, false);
+  assert.equal(result.qualification.releaseReady, false);
+  assert.equal(result.qualification.mode, "runner-qualification");
+  assert.equal(receipt.qualification, undefined);
+  for (const change of [
+    (r, c) => { c.actorId = String(AUTHOR.id); },
+    (r, c) => { c.eventName = "pull_request_target"; },
+    r => { r.author.id = 1; }, r => { r.author.login = "github-actions[bot]"; },
+    r => { r.author = AUTHOR; }, r => { r.mergeActor = AUTHOR; },
+    r => { r.repositoryId = 1; }, r => { r.releaseApproved = true; },
+    r => { r.reasons.push("Unexpected merge actor: alert Blake and pause"); },
+  ]) {
+    const r = structuredClone(receipt); const c = { ...context }; change(r, c);
+    assert.throws(() => qualifyOwner(r, c));
+  }
 });

@@ -19,7 +19,12 @@ pause-path test, never an implicit author exception.
 The target private environment is **Faith on the Frontlines — Cloud audits**.
 Each audit uses a fresh GitHub checkout at the exact candidate, covering the
 complete production-to-candidate diff. `ops/cloud-audit/verify-candidate.mjs`
-independently verifies GitHub metadata and ancestry. `run.mjs` checks the clean
+independently verifies GitHub metadata and ancestry. Cloud coordinates source
+review and artifact recovery; the reviewed GitHub Actions job executes candidate
+code. The October 13 Cloud setup could not launch sandboxed Chromium and exposed
+platform GitHub authentication and a Docker socket, so it is not qualified to
+execute arbitrary candidate code. Keep the browser sandbox enabled and do not
+use Docker to bypass that limit. `run.mjs` checks the clean
 checkout, preserves the candidate, runs lint/build/unit/generated-binding type
 checks, verifies event/candidate guards, and starts workerd with a separate
 synthetic D1 database and local Payload fixture. Chromium checks eight routes at
@@ -78,16 +83,21 @@ harness. The two-checkout form is:
 node /path/to/reviewed/harness/ops/cloud-audit/run.mjs --site /path/to/candidate --pr <PR_NUMBER> --candidate <FULL_MERGE_SHA> --production <FULL_PRODUCTION_SHA> --out /path/to/evidence
 ```
 
-During local runner preparation only, `--qualification` exercises the technical
-checks against a clean committed task branch. Its report is labelled
+For local runner preparation, `--qualification` exercises the technical
+checks against a clean committed task branch. The manually dispatched Actions
+workflow also permits `qualify_executor=true` only for the numeric owner acting
+on an independently verified owner-authored, owner-merged PR. It preserves the
+unexpected-author pause and records the requesting owner; it does not add an
+author to the allowlist or accept an arbitrary identity. Its report is labelled
 `runner-qualification`; it does not assert an actual expected-author merge or
-Cloud/event acceptance. It must never be used as release evidence.
+expected-author Cloud/event acceptance. It must never be used as release evidence.
 
 ## Cloud configuration to review
 
 Configure only this GitHub repository. Keep the environment private; no VPN or
-outbound cloud identity is needed. Install from the reviewed lockfile and install
-Chromium plus Linux browser dependencies. The start instructions are in
+outbound cloud identity is needed. Install only reviewed coordinator tooling in
+Cloud. Candidate dependency installation, Chromium and its Linux dependencies
+belong in the isolated Actions runner. The start instructions are in
 `ops/cloud-audit/cloud-start.md`.
 
 Allow the standard package-manager hosts plus `api.github.com` for independent
@@ -137,8 +147,8 @@ require action-time owner confirmation or handoff.
    live evidence. A failed event path must alert and stay unqualified, without
    a polling fallback. Record how the provider renews the seven-day subscription.
 7. From a fresh published Cloud task, verify the exact actual merge, run code /
-   security / browser / integration checks, and dispatch the same candidate's
-   artifact workflow. Retain the actual run/artifact IDs, artifact digest and
+   security review, and dispatch browser/integration execution through the same
+   candidate's artifact workflow. Retain the actual run/artifact IDs, artifact digest and
    candidate. Start another fresh Cloud task, download that exact artifact,
    verify `results.mjs`, independently re-read the merged PR, and recover the
    report without Mac or VM111 access. Hashes prove integrity only relative to

@@ -11,6 +11,11 @@ on:
         description: Full immutable merge SHA
         required: true
         type: string
+      qualify_executor:
+        description: Owner-only executor test; preserves identity pause and does not approve release
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -25,6 +30,7 @@ jobs:
       decision: ${{ steps.identity.outputs.decision }}
       candidate: ${{ steps.identity.outputs.candidate }}
       production: ${{ steps.identity.outputs.production }}
+      mode: ${{ steps.identity.outputs.mode }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -39,7 +45,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ inputs.pr_number }}
           CANDIDATE_SHA: ${{ inputs.candidate_sha }}
-        run: node ops/cloud-audit/verify-candidate.mjs "$PR_NUMBER" "$CANDIDATE_SHA" evidence/candidate.json
+          QUALIFY_EXECUTOR: ${{ inputs.qualify_executor }}
+        run: |
+          options=()
+          if [[ "$QUALIFY_EXECUTOR" == "true" ]]; then options+=(--qualify-owner); fi
+          node ops/cloud-audit/verify-candidate.mjs "$PR_NUMBER" "$CANDIDATE_SHA" evidence/candidate.json "${options[@]}"
       - name: Retain identity decision, including pauses
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -50,7 +60,7 @@ jobs:
 
   audit:
     needs: verify
-    if: needs.verify.outputs.decision == 'expected'
+    if: needs.verify.outputs.decision == 'expected' || needs.verify.outputs.mode == 'runner-qualification'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -73,6 +83,24 @@ jobs:
           cache-dependency-path: |
             harness/package-lock.json
             site/package-lock.json
+      - name: Reverify candidate before execution and retain its identity pause
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          CANDIDATE_SHA: ${{ needs.verify.outputs.candidate }}
+          PRODUCTION_SHA: ${{ needs.verify.outputs.production }}
+          AUDIT_MODE: ${{ needs.verify.outputs.mode }}
+        run: |
+          options=()
+          if [[ "$AUDIT_MODE" == "runner-qualification" ]]; then options+=(--qualify-owner); fi
+          node harness/ops/cloud-audit/verify-candidate.mjs "$PR_NUMBER" "$CANDIDATE_SHA" evidence/candidate.json "${options[@]}"
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const receipt=JSON.parse(readFileSync('evidence/candidate.json','utf8'));
+          assert.equal(receipt.production,process.env.PRODUCTION_SHA,'Production changed; restart the audit');
+          assert.equal(receipt.qualification?.mode??'merged-candidate',process.env.AUDIT_MODE);
+          JS
       - name: Install locked candidate and harness tooling
         run: |
           npm ci --prefix harness
@@ -84,7 +112,11 @@ jobs:
           PR_NUMBER: ${{ inputs.pr_number }}
           CANDIDATE_SHA: ${{ needs.verify.outputs.candidate }}
           PRODUCTION_SHA: ${{ needs.verify.outputs.production }}
-        run: node harness/ops/cloud-audit/run.mjs --site site --pr "$PR_NUMBER" --candidate "$CANDIDATE_SHA" --production "$PRODUCTION_SHA" --out evidence
+          AUDIT_MODE: ${{ needs.verify.outputs.mode }}
+        run: |
+          options=()
+          if [[ "$AUDIT_MODE" == "runner-qualification" ]]; then options+=(--qualification); fi
+          node harness/ops/cloud-audit/run.mjs --site site --pr "$PR_NUMBER" --candidate "$CANDIDATE_SHA" --production "$PRODUCTION_SHA" --out evidence "${options[@]}"
       - name: Preserve results even when checks fail
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
