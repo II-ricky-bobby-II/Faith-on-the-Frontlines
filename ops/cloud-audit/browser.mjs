@@ -33,7 +33,10 @@ export async function auditBrowser(origin, out) {
           const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
           assert(!overflow, "Horizontal overflow");
           await page.screenshot({ path: join(out, `${viewport.width}-${path === "/" ? "home" : path.slice(1).replaceAll("/", "-")}.png`), fullPage: true });
-          if (path === "/events") assert(await page.getByText("Audit fixture gathering", { exact: true }).count() > 0, "CMS fixture is missing from events");
+          if (path === "/events") {
+            assert(await page.getByRole("heading", { name: "Fixture venue", exact: true }).count() === 1, "CMS venue is missing from events");
+            assert(await page.locator('a[href="/events/audit-fixture-event"]').count() === 1, "CMS detail link is missing from events");
+          }
           if (path === "/events/audit-fixture-event") assert(await page.getByRole("heading", { name: "Audit fixture gathering", exact: true }).count() === 1, "CMS detail fixture is missing");
           await page.addScriptTag({ content: axeSource });
           const accessibility = await page.evaluate(async () => {

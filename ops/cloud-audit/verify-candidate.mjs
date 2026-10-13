@@ -45,7 +45,7 @@ export function verifyMetadata({ repository, pr, commit, develop, production, an
   };
 }
 
-export async function verify(number, candidate, api = path => JSON.parse(execFileSync("gh", ["api", path], {
+export async function verify(number, candidate, api = path => JSON.parse(execFileSync("gh", ["api", "--hostname", "github.com", path], {
   encoding: "utf8", maxBuffer: 32 * 1024 * 1024, timeout: 30000, stdio: ["ignore", "pipe", "pipe"],
 }))) {
   assert.ok(Number.isSafeInteger(number) && number > 0 && isSha(candidate), "Valid PR and full SHA required");

@@ -16,6 +16,9 @@ Use Node 22.13.0 and the lockfile. Install Chromium and its official Linux
 dependencies during environment setup. Recheck `api.github.com` access, workerd
 and browser availability in the new task. Preserve normal TLS/proxy controls.
 No credential value should be written into source, logs, task output or artifacts.
+The runner's environment filter is not OS isolation. Verify that the fresh
+executor exposes no credential files or privileged service identity to candidate
+code or dependency installation. Keep Actions dispatch authority outside it.
 
 Run the trusted `ops/cloud-audit/run.mjs` on the clean exact candidate with the
 full production base. Review the entire unreleased diff. Use the installed Codex

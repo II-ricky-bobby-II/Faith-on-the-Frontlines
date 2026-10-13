@@ -28,6 +28,12 @@ CMS list/detail rendering and WCAG axe rules. Browser traffic is restricted to
 the loopback preview. No production binding or inherited application credential
 is passed to the fixture process.
 
+The environment filter is not an OS sandbox. Candidate code and dependency
+installation must run in a fresh executor without credential files, production
+service identity or access to another workstream's resources. Independently
+verify that custody before treating an executor as qualified. Keep separately
+scoped Actions dispatch access outside candidate execution.
+
 These deterministic checks supplement a fresh Cloud code review, the installed
 Codex Security plugin's canonical diff scan, manual visual/accessibility review,
 and checks for the actual changed feature. `report.json` always says

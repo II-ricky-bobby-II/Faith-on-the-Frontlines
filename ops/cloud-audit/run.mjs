@@ -14,7 +14,8 @@ const option = name => { const i = args.indexOf(name); return i === -1 ? undefin
 const site = resolve(option("--site") ?? join(dirname(fileURLToPath(import.meta.url)), "../.."));
 const out = resolve(option("--out") ?? join(site, "outputs", `audit-${randomUUID()}`));
 const qualification = args.includes("--qualification");
-const git = (...arguments_) => execFileSync("git", arguments_, { cwd: site, encoding: "utf8" }).trim();
+const gitRaw = (...arguments_) => execFileSync("git", arguments_, { cwd: site, maxBuffer: 64 * 1024 * 1024 });
+const git = (...arguments_) => gitRaw(...arguments_).toString("utf8").trim();
 const candidate = option("--candidate") ?? git("rev-parse", "HEAD");
 const production = option("--production") ?? git("rev-parse", "origin/production");
 assert.ok(isSha(candidate) && isSha(production), "Full candidate and production SHAs required");
@@ -23,7 +24,8 @@ assert.equal(git("status", "--porcelain", "--untracked-files=normal"), "", "Cand
 const mergeBase = git("merge-base", production, candidate);
 assert.ok(isSha(mergeBase), "Candidate and production need a shared history");
 
-// Preserve the normal proxy/CA boundary, and withhold app/provider credentials from candidate commands.
+// Preserve proxy/CA settings and withhold direct credentials. This filter is not an OS sandbox;
+// the fresh executor must also have no accessible credential files or privileged service identity.
 const allowedEnv = /^(PATH|HOME|TMPDIR|TMP|TEMP|USER|LOGNAME|SHELL|SystemRoot|LANG|LC_.*|CI|TERM|HTTP_PROXY|HTTPS_PROXY|ALL_PROXY|NO_PROXY|http_proxy|https_proxy|all_proxy|no_proxy|SSL_CERT_FILE|SSL_CERT_DIR|NODE_EXTRA_CA_CERTS|REQUESTS_CA_BUNDLE|CURL_CA_BUNDLE|NODE_USE_ENV_PROXY|PLAYWRIGHT_BROWSERS_PATH)$/;
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => allowedEnv.test(key)));
 env.WRANGLER_SEND_METRICS = "false";
@@ -36,7 +38,7 @@ const report = { schema: 1, workstream: "global_fellowship", candidate, producti
   mode: qualification ? "runner-qualification" : "merged-candidate", node: process.version, platform: process.platform,
   startedAt: new Date().toISOString(), stages: [], technicalStatus: "running", releaseReady: false,
   remainingReviews: ["Complete unreleased code review", "Codex Security diff scan", "Manual accessibility and visual review", "Owner release approval"],
-  limitations: ["Synthetic local D1 and CMS only", "Inquiry endpoint accepts input but does not send email/CRM", "No live email or production D1 acceptance"],
+  limitations: ["Synthetic local D1 and CMS only", "Inquiry endpoint accepts input but does not send email/CRM", "No live email or production D1 acceptance", "Environment filtering is not OS isolation; executor credential custody needs independent verification"],
 };
 await mkdir(out, { recursive: true });
 await writeFile(join(out, "report.json"), JSON.stringify(report, null, 2) + "\n");
@@ -86,8 +88,8 @@ try {
     assert.equal(receipt.tree, report.tree);
     report.superseded = receipt.superseded;
   }
-  const diff = git("diff", "--binary", `${production}..${candidate}`);
-  await writeFile(join(out, "unreleased.patch"), diff + "\n");
+  const diff = gitRaw("diff", "--binary", `${production}..${candidate}`);
+  await writeFile(join(out, "unreleased.patch"), diff);
   report.diffSha256 = sha256(diff);
   report.changedFiles = git("diff", "--name-status", `${production}..${candidate}`).split("\n").filter(Boolean);
   report.lockSha256 = sha256(await readFile(join(site, "package-lock.json")));
@@ -96,7 +98,8 @@ try {
   await command("binding-types", process.execPath, [wrangler, "types", "--config", "dist/server/wrangler.json"]);
   await command("typecheck", join(site, "node_modules/.bin/tsc"), ["--noEmit", "--incremental", "false"]);
   const harness = dirname(fileURLToPath(import.meta.url));
-  await command("candidate-verifier-tests", process.execPath, ["--test", join(harness, "tests/candidate.test.mjs")]);
+  const harnessTests = (await readdir(join(harness, "tests"))).filter(name => name.endsWith(".test.mjs")).sort();
+  await command("candidate-and-recovery-tests", process.execPath, ["--test", ...harnessTests.map(name => join(harness, "tests", name))]);
   await command("event-protocol-tests", process.execPath, ["--test", "ops/develop-events/tests/events.test.mjs"]);
 
   const cmsHits = [];
