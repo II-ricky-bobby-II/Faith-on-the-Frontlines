@@ -149,7 +149,7 @@ try {
   assert.match(readback, /"consent":\s*1\b/, "Consent was not stored");
   assert.ok(!readback.includes("honeypot@example.invalid"), "Honeypot was written to D1");
   report.stages.push({ name: "browser-responsive-accessibility-integrations", status: browserResult.failures.length ? "failed" : "passed" });
-  assert.deepEqual(browserResult.failures, [], "Browser audit has failures; see browser.json");
+  assert.equal(browserResult.failures.length, 0, "Browser audit has failures; see browser.json");
   assert.deepEqual(snapshot(), original, "Audit changed tracked candidate files");
   report.technicalStatus = "passed";
 } catch (error) {
@@ -164,6 +164,12 @@ try {
     if (!stopped) preview.kill("SIGKILL");
   }
   if (cms) await new Promise(done => cms.close(done));
+  report.candidatePreserved = JSON.stringify(snapshot()) === JSON.stringify(original);
+  if (!report.candidatePreserved) {
+    report.technicalStatus = "failed";
+    report.error = "Audit changed the candidate checkout";
+    process.exitCode = 1;
+  }
   report.finishedAt = new Date().toISOString();
   await writeFile(join(out, "report.json"), JSON.stringify(report, null, 2) + "\n");
   await sealResults(out);

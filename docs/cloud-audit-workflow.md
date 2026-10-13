@@ -111,6 +111,10 @@ require action-time owner confirmation or handoff.
    editor. A draft setup was started October 13 from existing develop; its base
    build/lint/unit results do not qualify this replacement candidate. Record the
    published environment identity and tested source revision.
+   Its generated local workaround lowers compatibility to May 22, 2026 and
+   retains the production database identifier for local emulation. Replace that
+   draft with this branch's corrected runtime and synthetic fixture configuration;
+   do not publish that workaround as a release-equivalent runner.
 4. Connect the recorded private release-coordination plugin to David and subscribe
    to `github.develop.merged`. Configure repository variable `FOTF_EVENTS_URL` and
    private secret `FOTF_EVENTS_SITE_TOKEN` only after authenticated bridge review.

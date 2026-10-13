@@ -33,6 +33,8 @@ export async function auditBrowser(origin, out) {
           const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
           assert(!overflow, "Horizontal overflow");
           await page.screenshot({ path: join(out, `${viewport.width}-${path === "/" ? "home" : path.slice(1).replaceAll("/", "-")}.png`), fullPage: true });
+          if (path === "/events") assert(await page.getByText("Audit fixture gathering", { exact: true }).count() > 0, "CMS fixture is missing from events");
+          if (path === "/events/audit-fixture-event") assert(await page.getByRole("heading", { name: "Audit fixture gathering", exact: true }).count() === 1, "CMS detail fixture is missing");
           await page.addScriptTag({ content: axeSource });
           const accessibility = await page.evaluate(async () => {
             const audit = await window.axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] } });
@@ -41,8 +43,6 @@ export async function auditBrowser(origin, out) {
           });
           result.accessibility.push({ path, viewport, ...accessibility });
           assert(accessibility.violations.length === 0, `${accessibility.violations.length} accessibility violations`);
-          if (path === "/events") assert(await page.getByText("Audit fixture gathering", { exact: true }).count() > 0, "CMS fixture is missing from events");
-          if (path === "/events/audit-fixture-event") assert(await page.getByRole("heading", { name: "Audit fixture gathering", exact: true }).count() === 1, "CMS detail fixture is missing");
         });
       }
       if (viewport.width === 390) {
