@@ -2,11 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createHmac, generateKeyPairSync, sign } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
+import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { readFileSync, readdirSync } from "node:fs";
 import worker, { verifyGitHubToken, verifyCallback } from "../worker/index.mjs";
 import { normalizeMerge, signWebhook, signingKey, canonicalArguments, validateCallback, validateGitHubClaims,
   REPOSITORY, REPOSITORY_ID, EVENT_NAME, isPublicAddress } from "../lib/protocol.mjs";
-import { deliver } from "../scripts/send-event.mjs";
+import { deliver, run } from "../scripts/send-event.mjs";
 import { checkReleaseCandidate } from "../scripts/check-release-candidate.mjs";
 
 const secret = "whsec_" + Buffer.alloc(32, 42).toString("base64");
@@ -202,4 +205,26 @@ test("production candidate requires the exact verified SHA and a same-repository
     p => p.pull_request.body += `Verified develop commit: \`${sha}\`\n`]) {
     const payload = release(); change(payload); assert.throws(() => checkReleaseCandidate(payload));
   }
+});
+
+
+test("direct Action sends Sites Bearer admission separately from GitHub OIDC", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "fotf-sender-"));
+  try {
+    const eventPath = join(dir, "event.json");
+    await writeFile(eventPath, JSON.stringify(fixture()));
+    for (const siteCredential of ["test-service-key", "Bearer test-service-key"]) {
+      let admitted = false;
+      await assert.rejects(run({ FOTF_EVENTS_URL: "https://bridge.example", FOTF_EVENTS_SITE_TOKEN: siteCredential,
+        GITHUB_EVENT_PATH: eventPath, ACTIONS_ID_TOKEN_REQUEST_URL: "https://oidc.example/token",
+        ACTIONS_ID_TOKEN_REQUEST_TOKEN: "request-key" }, async (url, options) => {
+        if (new URL(url).hostname === "oidc.example") return Response.json({ value: "github-jwt" });
+        assert.equal(options.headers["OAI-Sites-Authorization"], "Bearer test-service-key");
+        assert.equal(options.headers.Authorization, "Bearer github-jwt");
+        admitted = true;
+        return Response.json({ active_count: 0, subscriptions: [] });
+      }), /no active subscription/);
+      assert.equal(admitted, true);
+    }
+  } finally { await rm(dir, { recursive: true, force: true }); }
 });
