@@ -47,6 +47,7 @@ const rpc = async (env, method, params = {}, user = "owner") => {
 const subscription = () => ({ name: EVENT_NAME, arguments: { repository: REPOSITORY, base_branch: "develop" },
   delivery: { mode: "webhook", url: "https://chatgpt.com/mcp-events/test-callback", secret } });
 const callbackFetch = async (url, options) => {
+  assert.equal(options.redirect, "manual", "Workers requires manual mode; never follow callback redirects");
   if (String(url).startsWith("https://cloudflare-dns.com/")) return Response.json({ Status: 0, Answer: [{ type: 1, data: "104.18.1.1" }] });
   return Response.json({ challenge: JSON.parse(options.body).challenge });
 };
@@ -93,7 +94,7 @@ test("GitHub OIDC requires a real RSA signature with a fixed issuer key endpoint
   const body = Buffer.from(JSON.stringify(claims())).toString("base64url");
   const signature = sign("RSA-SHA256", Buffer.from(`${header}.${body}`), privateKey).toString("base64url");
   const token = `${header}.${body}.${signature}`;
-  const fetcher = async url => { assert.equal(url, "https://token.actions.githubusercontent.com/.well-known/jwks");
+  const fetcher = async (url, options) => { assert.equal(options.redirect, "manual"); assert.equal(url, "https://token.actions.githubusercontent.com/.well-known/jwks");
     return Response.json({ keys: [{ ...publicKey.export({ format: "jwk" }), kid: "test-key" }] }); };
   const request = value => new Request("https://bridge.example/api/delivery-context", { headers: { Authorization: `Bearer ${value}` } });
   await verifyGitHubToken(request(token), envFor(), fetcher);
@@ -106,6 +107,9 @@ test("callback activation rejects private DNS, wrong challenges and redirects", 
     async () => Response.json({ Status: 0, Answer: [{ type: 1, data: "10.0.0.1" }] })));
   await assert.rejects(verifyCallback({}, subscription().delivery.url, "sub_test", secret,
     async (url, options) => String(url).includes("dns-query") ? callbackFetch(url, options) : Response.json({ challenge: "wrong" })));
+  await assert.rejects(verifyCallback({}, subscription().delivery.url, "sub_test", secret,
+    async (url, options) => String(url).includes("dns-query") ? callbackFetch(url, options)
+      : new Response(null, { status: 302, headers: { Location: "https://evil.test/callback" } })));
 });
 
 test("MCP discovery advertises events, authenticated reads never expose delivery secrets", async () => {

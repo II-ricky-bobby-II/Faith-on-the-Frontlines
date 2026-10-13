@@ -69,9 +69,10 @@ export async function verifyGitHubToken(request, env, fetcher = fetch) {
   const claims = decode(payloadPart);
   if (header.alg !== "RS256" || typeof header.kid !== "string" || !env.ACTION_AUDIENCE) throw new Error("Invalid GitHub OIDC");
   validateGitHubClaims(claims, env.ACTION_AUDIENCE);
+  // Workers supports manual redirects; the response checks below reject 3xx.
   // The issuer and key URL are fixed; never fetch a URL supplied in a JWT header.
   const response = await fetcher("https://token.actions.githubusercontent.com/.well-known/jwks", {
-    redirect: "error", signal: AbortSignal.timeout(10000), cf: { cacheTtl: 300, cacheEverything: true },
+    redirect: "manual", signal: AbortSignal.timeout(10000), cf: { cacheTtl: 300, cacheEverything: true },
   });
   if (!response.ok) throw new Error("GitHub identity keys unavailable");
   const { keys } = await response.json();
@@ -93,7 +94,7 @@ export async function verifyCallback(env, rawUrl, subscriptionId, secret, fetche
   // trusted provider hosts and validate DNS immediately before each connection.
   const answers = await Promise.all(["A", "AAAA"].map(async type => {
     const response = await fetcher(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(url.hostname)}&type=${type}`, {
-      headers: { Accept: "application/dns-json" }, redirect: "error", signal: AbortSignal.timeout(10000),
+      headers: { Accept: "application/dns-json" }, redirect: "manual", signal: AbortSignal.timeout(10000),
     });
     if (!response.ok) throw new Error("Callback DNS unavailable");
     const result = await response.json();
@@ -106,7 +107,7 @@ export async function verifyCallback(env, rawUrl, subscriptionId, secret, fetche
   const id = `verification_${crypto.randomUUID()}`;
   const timestamp = String(nowSeconds());
   const body = JSON.stringify({ type: "verification", challenge });
-  const response = await fetcher(url.toString(), { method: "POST", body, redirect: "error",
+  const response = await fetcher(url.toString(), { method: "POST", body, redirect: "manual",
     signal: AbortSignal.timeout(10000), headers: { "Content-Type": "application/json", "webhook-id": id,
       "webhook-timestamp": timestamp, "webhook-signature": await signWebhook(secret, id, timestamp, body),
       "X-MCP-Subscription-Id": subscriptionId } });
