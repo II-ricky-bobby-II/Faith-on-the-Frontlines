@@ -1,0 +1,14 @@
+{
+  "name": "fotf-develop-events",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check worker/index.mjs && node --check lib/protocol.mjs && node --check scripts/send-event.mjs",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": { "drizzle-orm": "0.45.2" },
+  "devDependencies": { "drizzle-kit": "0.31.10" }
+}
