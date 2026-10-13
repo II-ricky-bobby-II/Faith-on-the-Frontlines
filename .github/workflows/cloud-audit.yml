@@ -24,7 +24,7 @@ permissions:
 jobs:
   verify:
     if: github.ref == 'refs/heads/develop'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     outputs:
       decision: ${{ steps.identity.outputs.decision }}
@@ -61,7 +61,7 @@ jobs:
   audit:
     needs: verify
     if: needs.verify.outputs.decision == 'expected' || needs.verify.outputs.mode == 'runner-qualification'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
       # The orchestrator and its dependencies come from reviewed develop.

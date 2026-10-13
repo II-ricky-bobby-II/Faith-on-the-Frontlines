@@ -57,11 +57,22 @@ export async function run(env = process.env, fetcher = fetch, callbackFetcher = 
     redirect: "error", signal: AbortSignal.timeout(10000) });
   if (!oidc.ok) throw new Error("Could not obtain GitHub workflow identity");
   const token = (await oidc.json()).value;
+  const privateSiteAuthorization = env.FOTF_EVENTS_SITE_TOKEN.startsWith("Bearer ")
+    ? env.FOTF_EVENTS_SITE_TOKEN : `Bearer ${env.FOTF_EVENTS_SITE_TOKEN}`;
   const api = async (path, body) => {
     const response = await fetcher(new URL(path, bridge), { method: "POST", body: JSON.stringify(body),
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, "OAI-Sites-Authorization": env.FOTF_EVENTS_SITE_TOKEN },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, "OAI-Sites-Authorization": privateSiteAuthorization },
       redirect: "error", signal: AbortSignal.timeout(15000) });
-    if (!response.ok) throw new Error(`Bridge operation failed (HTTP ${response.status})`);
+    if (!response.ok) {
+      // Only public workflow identity fields; never print the JWT or service key.
+      try {
+        const identity = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8"));
+        console.error("OIDC response identity:", JSON.stringify(Object.fromEntries(
+          ["iss", "aud", "repository", "repository_id", "event_name", "ref", "workflow_ref", "exp", "nbf"]
+            .map(key => [key, identity[key]]))));
+      } catch { /* Malformed identity remains an authorization failure. */ }
+      throw new Error(`Bridge operation failed (HTTP ${response.status})`);
+    }
     return response.json();
   };
   const context = await api("/api/delivery-context", { event_id: event.eventId });
