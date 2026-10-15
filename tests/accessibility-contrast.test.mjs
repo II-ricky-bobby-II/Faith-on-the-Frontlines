@@ -3,7 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const css = (await readFile(new URL("../app/globals.css", import.meta.url), "utf8"))
-  .replace(/^@import[^;]+;/gm, "");
+  .replace(/^@import[^;]+;/gm, "")
+  .replace(/\/\*[\s\S]*?\*\//g, "");
 
 function declaration(selector, property) {
   const rule = css.split("}").find((rule) => rule.split("{")[0].trim() === selector);
