@@ -7,7 +7,7 @@ const require = createRequire(import.meta.url);
 export async function auditBrowser(origin, out) {
   if (!/^http:\/\/127\.0\.0\.1:[0-9]+$/.test(origin)) throw new Error("Only an isolated loopback preview is allowed");
   const browser = await chromium.launch({ chromiumSandbox: true });
-  const result = { checks: [], failures: [], accessibility: [], blockedExternalRequests: [], pageErrors: [],
+  const result = { checks: [], failures: [], accessibility: [], linkNames: [], blockedExternalRequests: [], pageErrors: [],
     manualReviewRequired: true, fixtures: { database: "local synthetic D1", cms: "local synthetic Payload HTTP server", email: "no provider" } };
   const check = async (name, action) => {
     try { await action(); result.checks.push({ name, status: "passed" }); }
@@ -42,11 +42,52 @@ export async function auditBrowser(origin, out) {
           const accessibility = await page.evaluate(async () => {
             const audit = await window.axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] } });
             return { violations: audit.violations.map(v => ({ id: v.id, impact: v.impact, help: v.help, helpUrl: v.helpUrl,
-              nodes: v.nodes.map(node => ({ target: node.target, summary: node.failureSummary })) })), incomplete: audit.incomplete.map(v => ({ id: v.id, impact: v.impact, help: v.help })) };
+              nodes: v.nodes.map(node => ({ target: node.target, html: node.html, summary: node.failureSummary })) })),
+              incomplete: audit.incomplete.map(v => ({ id: v.id, impact: v.impact, help: v.help,
+                nodes: v.nodes.map(node => ({ target: node.target, html: node.html, summary: node.failureSummary,
+                  checks: [...node.any, ...node.all, ...node.none].map(check => ({ id: check.id, message: check.message, data: check.data })) })) })) };
           });
           result.accessibility.push({ path, viewport, ...accessibility });
           assert(accessibility.violations.length === 0, `${accessibility.violations.length} accessibility violations`);
         });
+      }
+      // Keep the original blocked-image route audits above. Also check link naming
+      // with both missing images and loaded synthetic images; no external fetches.
+      for (const imageState of ["missing", "loaded-synthetic"]) {
+        const images = async route => {
+          if (imageState === "loaded-synthetic" && new URL(route.request().url()).origin !== origin && route.request().resourceType() === "image") {
+            return route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#263436"/></svg>' });
+          }
+          return route.fallback();
+        };
+        await page.route("**/*", images);
+        for (const path of ["/", "/events"]) {
+          await check(`${viewport.width}px ${path} link names (${imageState})`, async () => {
+            await page.goto(origin + path, { waitUntil: "networkidle" });
+            const brand = page.locator(".parent-brand");
+            assert(await brand.and(page.getByRole("link", { name: /Global Fellowship/ })).count() === 1, "Brand name omits the logo wording");
+            if (await page.locator(".site-domain").isVisible()) {
+              assert(await brand.and(page.getByRole("link", { name: /faithonthefrontlines\.org/ })).count() === 1, "Brand name omits the visible domain");
+            }
+            const card = page.locator('a[href="/events/audit-fixture-event"]');
+            assert(await card.count() === 1, "Expected the synthetic event card");
+            for (const name of [/Fixture venue/, /Fixture city, CA/, /Fixture theme/, /Event details/]) {
+              assert(await card.and(page.getByRole("link", { name })).count() === 1, `Event link name omits ${name}`);
+            }
+            const image = card.locator("img");
+            assert(await image.evaluate((img, state) => img.complete && (img.naturalWidth > 0) === (state === "loaded-synthetic"), imageState), "Image fixture did not reach the requested state");
+            result.linkNames.push({ path, viewport, imageState, brand: await brand.ariaSnapshot(), event: await card.ariaSnapshot() });
+            await page.screenshot({ path: join(out, `${viewport.width}-${path === "/" ? "home" : "events"}-${imageState}.png`), fullPage: true });
+            await page.addScriptTag({ content: axeSource });
+            const naming = await page.evaluate(async () => {
+              const audit = await window.axe.run(document, { runOnly: { type: "rule", values: ["label-content-name-mismatch"] } });
+              return { violations: audit.violations, incomplete: audit.incomplete };
+            });
+            result.linkNames[result.linkNames.length - 1].axe = naming;
+            assert(naming.violations.length === 0, "Visible link wording differs from its accessible name");
+          });
+        }
+        await page.unroute("**/*", images);
       }
       if (viewport.width === 390) {
         await check("keyboard mobile menu", async () => {

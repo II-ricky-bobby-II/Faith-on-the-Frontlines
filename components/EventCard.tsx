@@ -9,7 +9,7 @@ export function EventCard({ event }: { event: Event }) {
   const month = new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "UTC" }).format(date);
   return (
     <article className="event-card">
-      <Link href={`/events/${event.slug}`} aria-label={`View ${event.title}`}>
+      <Link href={`/events/${event.slug}`}>
         <div className="event-card-image">
           <Image src={event.image} alt={event.imageAlt} fill sizes="(max-width: 760px) 100vw, 33vw" unoptimized />
           <div className="date-badge" aria-hidden="true"><div><span>{month}</span><strong>{date.getUTCDate()}</strong></div></div>
