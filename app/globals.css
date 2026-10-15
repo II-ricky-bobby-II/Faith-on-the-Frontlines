@@ -10,6 +10,7 @@
   --gold: #c7a574;
   --body-text: #1e2529;
   --muted-text: #647074;
+  --form-secondary-text: #5c686c;
   --pale-blue: #eaf0f1;
   --line: rgba(30, 37, 41, 0.16);
 }
@@ -118,7 +119,7 @@ button, input, textarea, select { font: inherit; }
 .event-invite-home { margin-top: 1.2rem; }
 .event-invite-events { margin-top: 3.5rem; }
 .event-invite-copy, .event-invite-form { position: relative; z-index: 1; }
-.event-invite .eyebrow { margin-bottom: .45rem; color: var(--gold); }
+.event-invite .eyebrow { margin-bottom: .45rem; color: #dfc69e; }
 .event-invite h2 { margin: 0; color: white; font-family: Georgia, serif; font-size: clamp(1.65rem, 3vw, 2.35rem); line-height: 1.08; }
 .event-invite-copy > p:last-child { max-width: 37rem; margin: .8rem 0 0; color: #d8e4e6; font-size: .88rem; line-height: 1.5; }
 .event-invite-form { display: grid; grid-template-columns: .8fr 1.15fr 1fr; gap: .75rem 1rem; align-items: end; }
@@ -187,7 +188,7 @@ button, input, textarea, select { font: inherit; }
 
 /* Forms */
 .form-wrap { display: grid; grid-template-columns: .8fr 1.4fr; gap: clamp(3rem, 7vw, 7rem); }
-.form-intro p { color: var(--muted-text); }
+.form-intro p { color: var(--form-secondary-text); }
 .contact-details { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
 .contact-details a { color: var(--teal); }
 .inquiry-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.25rem; }
@@ -197,7 +198,7 @@ button, input, textarea, select { font: inherit; }
 .field input, .field textarea, .field select { width: 100%; border: 1px solid #b5bebf; border-radius: 0; background: var(--warm-white); padding: .78rem .85rem; color: var(--body-text); }
 .field textarea { min-height: 130px; resize: vertical; }
 .field-error { margin: 0; color: #9d241c; font-size: .78rem; }
-.form-note { margin: .5rem 0 0; color: var(--muted-text); font-size: .78rem; }
+.form-note { margin: .5rem 0 0; color: var(--form-secondary-text); font-size: .78rem; }
 .form-status { grid-column: 1 / -1; border-left: 3px solid var(--teal); background: #e2efeb; padding: .85rem 1rem; }
 
 /* Event detail */
